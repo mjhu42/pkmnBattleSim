@@ -10,7 +10,7 @@
 "                                                                               "
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-import pygame, csv
+import pygame, csv, copy
 from pygamegame import PygameGame
 from classes.rotatingButton import RotatingButton
 from classes.pokemonClass import Pokemon
@@ -105,6 +105,7 @@ class BattleSimulator(PygameGame):
 
         # POKÉMON
         self.party = [None, None, None, None, None, None]
+        self.partySize = 0
 
         self.pkmn1 = None
         self.pkmn1Name = None
@@ -206,26 +207,26 @@ class BattleSimulator(PygameGame):
                           [self.pkmn3Type1, self.pkmn3Type2], [self.pkmn4Type1, self.pkmn4Type2],
                           [self.pkmn5Type1, self.pkmn5Type2], [self.pkmn6Type1, self.pkmn6Type2]]
 
-        self.cpuPkmn1 = Pokemon("Charizard", 100, [4, 0, 0, 252, 0, 252], [Move("Flamethrower", 'Fire', 'Special', '90', '100', '24', '', [['', '', '', '', ''], ['', '', '', '', '', '', ''], ['', '', '', '', '', '']]), Move("Wing Attack", 'Flying', 'Physical', '60', '100', '56', '', [['', '', '', '', ''], ['', '', '', '', '', '', ''], ['', '', '', '', '', '']]), Move("Slash", 'Normal', 'Physical', '70', '100', '32', '', [['', '', '', '', ''], ['', '', '', '', '', '', ''], ['1', '', '', '', '', '']]), None], False, [0, 0, 0, 0, 0, 0], [False, False, False, False, False, False], True)
+        self.cpuPkmn1 = Pokemon("Charizard", 100, [4, 0, 0, 252, 0, 252], [Move("Flamethrower", 'Fire', 'Special', '90', '100', '24', '', [['', '', '', '', ''], ['', '', '', '', '', '', ''], ['', '', '', '', '', '']]), Move("Wing Attack", 'Flying', 'Physical', '60', '100', '56', '', [['', '', '', '', ''], ['', '', '', '', '', '', ''], ['', '', '', '', '', '']]), Move("Slash", 'Normal', 'Physical', '70', '100', '32', '', [['', '', '', '', ''], ['', '', '', '', '', '', ''], ['1', '', '', '', '', '']]), None], False, [0, 0, 0, 0, 0, 0, 0, 0], [False, False, False, False, False], True)
         # self.cpuPkmn1 = None
         self.cpuPkmn1BattleStats = [0, 0, 0, 0, 0, 0]
         self.cpuPkmn1IsFainted = False
         self.cpuPkmn1StatChanges = [0, 0, 0, 0, 0, 0]
         self.cpuPkmn1Conditions = [False, False, False, False, False, False]
 
-        self.cpuPkmn2 = Pokemon("Blastoise", 100, [4, 0, 0, 252, 0, 252], [Move("Surf", 'Water', 'Special', '65', '100', '32', '', [['', '', '', '', ''], ['', '', '', '', 't, -1, 10', '', ''], ['', '', '', '', '', '']]), Move("Blizzard", 'Ice', 'Special', '110', '70', '8', '', [['', '10', '', '', ''], ['', '', '', '', '', '', ''], ['', '', '', '', '', '']]), Move("Ice Beam", 'Ice', 'Special', '90', '100', '16', '', [['', '10', '', '', ''], ['', '', '', '', '', '', ''], ['', '', '', '', '', '']]), None], False, [0, 0, 0, 0, 0, 0], [False, False, False, False, False, False])
+        self.cpuPkmn2 = Pokemon("Blastoise", 100, [4, 0, 0, 252, 0, 252], [Move("Surf", 'Water', 'Special', '65', '100', '32', '', [['', '', '', '', ''], ['', '', '', '', '', '', ''], ['', '', '', '', '', '']]), Move("Blizzard", 'Ice', 'Special', '110', '70', '8', '', [['', '', '', '', '10'], ['', '', '', '', '', '', ''], ['', '', '', '', '', '']]), Move("Ice Beam", 'Ice', 'Special', '90', '100', '16', '', [['', '', '', '', '10'], ['', '', '', '', '', '', ''], ['', '', '', '', '', '']]), None], False, [0, 0, 0, 0, 0, 0, 0, 0], [False, False, False, False, False])
         self.cpuPkmn2BattleStats = [0, 0, 0, 0, 0, 0]
         self.cpuPkmn2IsFainted = False
         self.cpuPkmn2StatChanges = [0, 0, 0, 0, 0, 0]
         self.cpuPkmn2Conditions = [False, False, False, False, False, False]
 
-        self.cpuPkmn3 = Pokemon("Venusaur", 100, [0, 0, 4, 252, 252, 0], [Move("Petal Dance", 'Grass', 'Special', '120', '100', '16', '', [['', '', '', '', ''], ['', '', '', '', '', '', ''], ['', '', '10', '', '', '']]), Move("Double-Edge", 'Normal', 'Physical', '120', '100', '24', '', [['', '', '', '', ''], ['', '', '', '', '', '', ''], ['', '', '25', '', '', '']]), None, None], False, [0, 0, 0, 0, 0, 0], [False, False, False, False, False, False])
+        self.cpuPkmn3 = Pokemon("Venusaur", 100, [0, 0, 4, 252, 252, 0], [Move("Petal Dance", 'Grass', 'Special', '120', '100', '16', '', [['', '', '', '', ''], ['', '', '', '', '', '', ''], ['', '', '10', '', '', '']]), Move("Double-Edge", 'Normal', 'Physical', '120', '100', '24', '', [['', '', '', '', ''], ['', '', '', '', '', '', ''], ['', '', '25', '', '', '']]), None, None], False, [0, 0, 0, 0, 0, 0, 0, 0], [False, False, False, False, False])
         self.cpuPkmn3BattleStats = [0, 0, 0, 0, 0, 0]
         self.cpuPkmn3IsFainted = False
         self.cpuPkmn3StatChanges = [0, 0, 0, 0, 0, 0]
         self.cpuPkmn3Conditions = [False, False, False, False, False, False]
 
-        self.cpuPkmn4 = Pokemon("Zapdos", 100, [0, 0, 4, 252, 252, 0], [Move("Thunderbolt", 'Electric', 'Special', '90', '100', '24', '', [['', '', '10', '', ''], ['', '', '', '', '', '', ''], ['', '', '', '', '', '']]), Move("Wing Attack", 'Flying', 'Physical', '60', '100', '56', '', [['', '', '', '', ''], ['', '', '', '', '', '', ''], ['', '', '', '', '', '']]), None, None], False, [0, 0, 0, 0, 0, 0], [False, False, False, False, False, False])
+        self.cpuPkmn4 = Pokemon("Zapdos", 100, [0, 0, 4, 252, 252, 0], [Move("Thunderbolt", 'Electric', 'Special', '90', '100', '24', '', [['', '', '10', '', ''], ['', '', '', '', '', '', ''], ['', '', '', '', '', '']]), Move("Wing Attack", 'Flying', 'Physical', '60', '100', '56', '', [['', '', '', '', ''], ['', '', '', '', '', '', ''], ['', '', '', '', '', '']]), None, None], False, [0, 0, 0, 0, 0, 0, 0, 0], [False, False, False, False, False])
         self.cpuPkmn4BattleStats = [0, 0, 0, 0, 0, 0]
         self.cpuPkmn4IsFainted = False
         self.cpuPkmn4StatChanges = [0, 0, 0, 0, 0, 0]
@@ -591,22 +592,11 @@ class BattleSimulator(PygameGame):
 
         # IMAGES
         self.playerWonBG = pygame.image.load("images/plyrwon.png")
-
-        self.burnPlyr = False
-        self.burnCPU = False
-        self.paraPlyr = False
-        self.paraCPU = False
-        self.poisonPlyr = False
-        self.poisonCPU = False
-        self.sleepPlyr = False
-        self.sleepCPU = False
-        self.frozenPlyr = False
-        self.frozenCPU = False
+        self.cpuWonBG = pygame.image.load("images/cpuwon.png")
 
         # BUTTONS
         self.replayButton = self.yesRun
         self.quitButton = self.noRun
-
 
     ############################
     ## INITIALIZE ACTIVE PKMN ##
@@ -881,6 +871,13 @@ class BattleSimulator(PygameGame):
         
         # set first pkmn inputted as the active pkmn
         self.initializeActive()
+
+        # count current party size
+        self.partySize = 0
+        for i in self.party:
+            if i != None:
+                self.partySize += 1
+        print(self.partySize)
 
     ###############
     ## GET LEVEL ##
@@ -1256,6 +1253,24 @@ class BattleSimulator(PygameGame):
             self.battleScreen = False
             return None
 
+    #####################################
+    ## STAT/COND. CHANGES DUE TO MOVES ##
+    #####################################
+    def getMoveStatChanges(self, effects):
+        for plyrChange in range(1, len(effects[0])):
+            if effects[0][plyrChange] != 0:
+                self.playerActivePkmn.changeStats(plyrChange, effects[0][plyrChange])
+        for cpuChange in range(1, len(effects[1])):
+            if effects[1][cpuChange] != 0:
+                print("here")
+                self.cpuActivePkmn.changeStats(cpuChange, effects[1][cpuChange])
+        for plyrChange in range(0, len(effects[2])):
+            if effects[2][plyrChange] != False:
+                self.playerActivePkmn.changeConditions(plyrChange)
+        for cpuChange in range(0, len(effects[3])):
+            if effects[3][cpuChange] != False:
+                self.cpuActivePkmn.changeConditions(cpuChange)
+
     ##########
     ## TURN ##
     ##########
@@ -1263,80 +1278,162 @@ class BattleSimulator(PygameGame):
         self.cpuUsedMove = self.cpuEasy.useMove() # initialize cpu move
         plyrSpeed = self.playerActivePkmn.getBattleStats()[5] # player speed
         cpuSpeed = self.cpuActivePkmn.getBattleStats()[5] # cpu speed
+
+        isPlayerBurned = self.playerActivePkmn.getConditions()[0]
+        isCPUBurned = self.cpuActivePkmn.getConditions()[0]
+
+        isPlayerPoisoned = self.playerActivePkmn.getConditions()[2]
+        isCPUPoisoned = self.cpuActivePkmn.getConditions()[2]
+
+        # if a pokemon are paralyzed, cut its speed in half.
+        if self.playerActivePkmn.getConditions()[1]:
+            plyrSpeed //= 2
+        if self.cpuActivePkmn.getConditions()[1]:
+            cpuSpeed //= 2
+        
         if self.cpuActivePkmn != None and self.playerActivePkmn != None:
             if cpuSpeed > plyrSpeed: # if opposing pkmn is faster than plyr pkmn
                 # check if move will faint the plyr pkmn
                 hpLeft = self.playerActivePkmn.getBattleStats()[0] - self.playerActivePkmn.getStatChanges()[0]
 
-                # if move will NOT KO:
+                # if move from cpu WILL NOT KO:
                 if self.cpuUsedMove[0] < hpLeft:
-                    self.playerActivePkmn.getStatChanges()[0] += self.cpuUsedMove[0]
-
-                # if move WILL KO:
-                else:
-                    self.cpuUsedMove[0] = hpLeft
-                    self.playerActivePkmn.getStatChanges()[0] += self.cpuUsedMove[0]
-                    self.playerActivePkmn.changeToFainted()
-                    self.playerFainted.append(self.playerActivePkmn)
-                    self.plyrJustFainted = True
-                if not self.playerActivePkmn.getIsFainted():
+                    self.playerActivePkmn.changeHP(self.cpuUsedMove[0])
                     hpLeft = self.cpuActivePkmn.getBattleStats()[0] - self.cpuActivePkmn.getStatChanges()[0]
                     if self.plyrUsedMove[0] < hpLeft:
-                        self.cpuActivePkmn.getStatChanges()[0] += self.plyrUsedMove[0]
+                        self.cpuActivePkmn.changeHP(self.plyrUsedMove[0])
                     else:
                         self.plyrUsedMove[0] = hpLeft
-                        self.cpuActivePkmn.getStatChanges()[0] += self.plyrUsedMove[0]
+                        self.cpuActivePkmn.changeHP(self.plyrUsedMove[0])
                         self.cpuActivePkmn.changeToFainted()
                         self.cpuFainted.append(self.cpuActivePkmn)
                         self.cpuActivePkmn = self.cpuSwitch()
                         if self.cpuActivePkmn != None:
+                            self.player.updateOppActive(self.cpuActivePkmn)
                             self.cpuActiveSprite = self.cpuEasy.updateCPUSprite(self.cpuActivePkmn, BattleSimulator.POKEMON_DICT)
+
+                # if move from cpu WILL KO:
+                else:
+                    self.cpuUsedMove[0] = hpLeft
+                    self.playerActivePkmn.changeHP(self.cpuUsedMove[0])
+                    self.playerActivePkmn.changeToFainted()
+                    self.playerFainted.append(self.playerActivePkmn)
+                    self.plyrJustFainted = True
             elif plyrSpeed > cpuSpeed: # if plyr pkmn is faster than opposing pkmn
                 hpLeft = self.cpuActivePkmn.getBattleStats()[0] - self.cpuActivePkmn.getStatChanges()[0]
+                # if move from plyr WILL NOT KO
                 if self.plyrUsedMove[0] < hpLeft:
-                    self.cpuActivePkmn.getStatChanges()[0] += self.plyrUsedMove[0]
+                    self.cpuActivePkmn.changeHP(self.plyrUsedMove[0])
+                    # self.getMoveStatChanges(effects)
+                    hpLeft = self.playerActivePkmn.getBattleStats()[0] - self.playerActivePkmn.getStatChanges()[0]
+                    if self.cpuUsedMove[0] < hpLeft:
+                        self.playerActivePkmn.changeHP(self.cpuUsedMove[0])
+                    else:
+                        self.cpuUsedMove[0] = hpLeft
+                        self.playerActivePkmn.changeHP(self.cpuUsedMove[0])
+                        self.playerActivePkmn.changeToFainted()
+                        self.playerFainted.append(self.playerActivePkmn)
+                        self.plyrJustFainted = True
+                # if move from plyr WILL KO
                 else:
                     self.plyrUsedMove[0] = hpLeft
-                    self.cpuActivePkmn.getStatChanges()[0] += self.plyrUsedMove[0]
+                    self.cpuActivePkmn.changeHP(self.plyrUsedMove[0])
                     self.cpuActivePkmn.changeToFainted()
                     self.cpuFainted.append(self.cpuActivePkmn)
                     self.cpuActivePkmn = self.cpuSwitch()
                     if self.cpuActivePkmn != None:
+                        self.player.updateOppActive(self.cpuActivePkmn)
                         self.cpuActiveSprite = self.cpuEasy.updateCPUSprite(self.cpuActivePkmn, BattleSimulator.POKEMON_DICT)
-                if self.cpuActivePkmn != None and not self.cpuActivePkmn.getIsFainted(): # first "!= none" covering for if it got killed prev. turn and it was the last pkmn
-                    hpLeft = self.playerActivePkmn.getBattleStats()[0] - self.playerActivePkmn.getStatChanges()[0]
-                    if self.cpuUsedMove[0] < hpLeft:
-                        self.playerActivePkmn.getStatChanges()[0] += self.cpuUsedMove[0]
-                    else:
-                        self.cpuUsedMove[0] = hpLeft
-                        self.playerActivePkmn.getStatChanges()[0] += self.cpuUsedMove[0]
-                        self.playerActivePkmn.changeToFainted()
-                        self.playerFainted.append(self.playerActivePkmn)
-                        self.plyrJustFainted = True
             else: # if speed tie
                 speedTie = random.randint(0, 1)
                 if speedTie == 0:
                     hpLeft = self.playerActivePkmn.getBattleStats()[0] - self.playerActivePkmn.getStatChanges()[0]
                     if self.cpuUsedMove[0] < hpLeft:
-                        self.playerActivePkmn.getStatChanges()[0] += self.cpuUsedMove[0]
+                        self.playerActivePkmn.changeHP(self.cpuUsedMove[0])
                     else:
                         self.cpuUsedMove[0] = hpLeft
-                        self.playerActivePkmn.getStatChanges()[0] += self.cpuUsedMove[0]
+                        self.playerActivePkmn.changeHP(self.cpuUsedMove[0])
                         self.playerActivePkmn.changeToFainted()
                         self.playerFainted.append(self.playerActivePkmn)
                         self.plyrJustFainted = True
                 else:
                     hpLeft = self.cpuActivePkmn.getBattleStats()[0] - self.cpuActivePkmn.getStatChanges()[0]
                     if self.plyrUsedMove[0] < hpLeft:
-                        self.cpuActivePkmn.getStatChanges()[0] += self.plyrUsedMove[0]
+                        self.cpuActivePkmn.changeHP(self.plyrUsedMove[0])
                     else:
                         self.plyrUsedMove[0] = hpLeft
-                        self.cpuActivePkmn.getStatChanges()[0] += self.plyrUsedMove[0]
+                        self.cpuActivePkmn.changeHP(self.plyrUsedMove[0])
                         self.cpuActivePkmn.changeToFainted()
                         self.cpuFainted.append(self.cpuActivePkmn)
                         self.cpuActivePkmn = self.cpuSwitch()
                         if self.cpuActivePkmn != None:
+                            self.player.updateOppActive(self.cpuActivePkmn)
                             self.cpuActiveSprite = self.cpuEasy.updateCPUSprite(self.cpuActivePkmn, BattleSimulator.POKEMON_DICT)
+        
+        # BURN MECHANICS: LOSE 1/16 OF HP AT END OF TURN
+        if isPlayerBurned:
+            hpLeft = self.playerActivePkmn.getBattleStats()[0] - self.playerActivePkmn.getStatChanges()[0]
+            damageDealt = self.playerActivePkmn.getBattleStats()[0] // 16
+            if hpLeft < damageDealt:
+                damageDealt = hpLeft
+                self.playerActivePkmn.changeHP(damageDealt)
+                self.playerActivePkmn.changeToFainted()
+                self.playerFainted.append(self.playerActivePkmn)
+                self.plyrJustFainted = True
+            else:
+                self.playerActivePkmn.changeHP(damageDealt)
+                print("%s was hurt by its burn!") % (self.playerActivePkmn)
+        if isCPUBurned:
+            hpLeft = self.cpuActivePkmn.getBattleStats()[0] - self.cpuActivePkmn.getStatChanges()[0]
+            damageDealt = self.cpuActivePkmn.getBattleStats()[0] // 16
+            if hpLeft < damageDealt:
+                damageDealt = hpLeft
+                self.cpuActivePkmn.changeHP(damageDealt)
+                self.cpuActivePkmn.changeToFainted()
+                self.cpuFainted.append(self.cpuActivePkmn)
+                self.cpuActivePkmn = self.cpuSwitch()
+                if self.cpuActivePkmn != None:
+                    self.player.updateOppActive(self.cpuActivePkmn)
+                    self.cpuActiveSprite = self.cpuEasy.updateCPUSprite(self.cpuActivePkmn, BattleSimulator.POKEMON_DICT)
+            else:
+                self.cpuActivePkmn.changeHP(damageDealt)
+                print("%s was hurt by its burn!") % (self.cpuActivePkmn)
+        
+        # POISON MECHANICS: LOSE 1/8 OF HP AT END OF TURN
+        if isPlayerPoisoned:
+            hpLeft = self.playerActivePkmn.getBattleStats()[0] - self.playerActivePkmn.getStatChanges()[0]
+            damageDealt = self.playerActivePkmn.getBattleStats()[0] // 8
+            if hpLeft < damageDealt:
+                damageDealt = hpLeft
+                self.playerActivePkmn.changeHP(damageDealt)
+                self.playerActivePkmn.changeToFainted()
+                self.playerFainted.append(self.playerActivePkmn)
+                self.plyrJustFainted = True
+            else:
+                self.playerActivePkmn.changeHP(damageDealt)
+                msg = ("%s was hurt by its burn!") % (self.playerActivePkmn)
+                print(msg)
+        if isCPUPoisoned:
+            hpLeft = self.cpuActivePkmn.getBattleStats()[0] - self.cpuActivePkmn.getStatChanges()[0]
+            damageDealt = self.cpuActivePkmn.getBattleStats()[0] // 8
+            if hpLeft < damageDealt:
+                damageDealt = hpLeft
+                self.cpuActivePkmn.changeHP(damageDealt)
+                self.cpuActivePkmn.changeToFainted()
+                self.cpuFainted.append(self.cpuActivePkmn)
+                self.cpuActivePkmn = self.cpuSwitch()
+                if self.cpuActivePkmn != None:
+                    self.player.updateOppActive(self.cpuActivePkmn)
+                    self.cpuActiveSprite = self.cpuEasy.updateCPUSprite(self.cpuActivePkmn, BattleSimulator.POKEMON_DICT)
+            else:
+                self.cpuActivePkmn.changeHP(damageDealt)
+                msg = ("%s was hurt by its burn!") % (self.cpuActivePkmn)
+                print(msg)
+        if len(self.playerFainted) == self.partySize:
+            self.gameOver = True
+            self.cpuWon = True
+            self.battleScreen = False
+
 
     #####################
     ## SWITCH OUT TURN ##
@@ -1796,14 +1893,13 @@ class BattleSimulator(PygameGame):
                     else:
                         print("Please choose a valid Pokémon.")
 
-
             # PICKING MOVES
             elif self.pickMoves:
                 self.activeMoves = self.playerActivePkmn.getMoves()
                 if self.move1Button.collidepoint(pygame.mouse.get_pos()) and self.activeMoves[0] != None:
                     self.plyrUsedMove = self.player.useMove(self.activeMoves[0])
                     plyrDmgDealt = self.plyrUsedMove[0]
-                    plyrDStatus = self.plyrUsedMove[1]
+                    plyrDStatus = copy.deepcopy(self.plyrUsedMove[1])
                     plyrMsg = self.plyrUsedMove[2]
                     self.pickMoves = False
                     self.chooseAction = True
@@ -1811,7 +1907,7 @@ class BattleSimulator(PygameGame):
                 elif self.move2Button.collidepoint(pygame.mouse.get_pos()) and self.activeMoves[1] != None:
                     self.plyrUsedMove = self.player.useMove(self.activeMoves[1])
                     plyrDmgDealt = self.plyrUsedMove[0]
-                    plyrDStatus = self.plyrUsedMove[1]
+                    plyrDStatus = copy.deepcopy(self.plyrUsedMove[1])
                     msg = self.plyrUsedMove[2]
                     self.pickMoves = False
                     self.chooseAction = True
@@ -1819,7 +1915,7 @@ class BattleSimulator(PygameGame):
                 elif self.move3Button.collidepoint(pygame.mouse.get_pos()) and self.activeMoves[2] != None:
                     self.plyrUsedMove = self.player.useMove(self.activeMoves[2])
                     plyrDmgDealt = self.plyrUsedMove[0]
-                    plyrDStatus = self.plyrUsedMove[1]
+                    plyrDStatus = copy.deepcopy(self.plyrUsedMove[1])
                     msg = self.plyrUsedMove[2]
                     self.pickMoves = False
                     self.chooseAction = True
@@ -1827,7 +1923,7 @@ class BattleSimulator(PygameGame):
                 elif self.move4Button.collidepoint(pygame.mouse.get_pos()) and self.activeMoves[3] != None:
                     self.plyrUsedMove = self.player.useMove(self.activeMoves[3])
                     plyrDmgDealt = self.plyrUsedMove[0]
-                    plyrDStatus = self.plyrUsedMove[1]
+                    plyrDStatus = copy.deepcopy(self.plyrUsedMove[1])
                     msg = self.plyrUsedMove[2]
                     self.pickMoves = False
                     self.chooseAction = True
@@ -2600,6 +2696,7 @@ class BattleSimulator(PygameGame):
             cpuIcon = self.getTinyIcon(cpuName)
             screen.blit(cpuIcon, (640, 295))
 
+            # print(self.cpuActivePkmn)
             otherDetails = ActiveBox(self.playerActivePkmn, self.cpuActivePkmn, (630, 15))
             otherDetails.draw(screen)
 
@@ -2628,12 +2725,15 @@ class BattleSimulator(PygameGame):
                 for box in self.partyBoxList:
                     box.draw(screen)
 
-            if self.mightRun == True:
+            if self.mightRun:
                 screen.blit(self.checkRunIMG, (0, 0))
 
         # GAME OVER
-        elif self.gameOver == True:
-            screen.blit(self.playerWonBG, (0, 0))
+        elif self.gameOver:
+            if self.playerWon:
+                screen.blit(self.playerWonBG, (0, 0))
+            elif self.cpuWon:
+                screen.blit(self.cpuWonBG, (0, 0))
 
     #########
     ## RUN ##

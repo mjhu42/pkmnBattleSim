@@ -123,6 +123,8 @@ class ActiveBox:
         self.cpuPkmn = cpuPkmn
         self.topLeft = topLeft
         self.titleFont = pg.font.SysFont("FuturaStd-Book", 18)
+        self.levelFont = pg.font.SysFont("FuturaStd-Book", 13)
+        self.statsFont = pg.font.SysFont("FuturaStd-Book", 10)
         self.burn = pg.image.load("classes/imgs/status_cond/burn.png")
         self.burnPlyrRect = self.burn.get_rect(center = (863, 38))
         self.burnCPURect = self.burn.get_rect(center = (863, 308))
@@ -142,8 +144,38 @@ class ActiveBox:
     def draw(self, screen): # 675, 25
         plyrName = self.titleFont.render(self.plyrPkmn.getName().upper(), True, (220, 220, 220))
         cpuName = self.titleFont.render(self.cpuPkmn.getName().upper(), True, (220, 220, 220))
+        plyrLevel = self.levelFont.render("LV. " + str(self.plyrPkmn.getLevel()), True, (150, 150, 150))
+        cpuLevel = self.levelFont.render("LV. " + str(self.cpuPkmn.getLevel()), True, (150, 150, 150))
         screen.blit(plyrName, (self.topLeft[0] + 55, self.topLeft[1] + 10))
         screen.blit(cpuName, (self.topLeft[0] + 55, self.topLeft[1] + 280))
+        screen.blit(plyrLevel, (self.topLeft[0] + 55, self.topLeft[1] + 29))
+        screen.blit(cpuLevel, (self.topLeft[0] + 55, self.topLeft[1] + 299))
+
+        statColor = (186, 168, 95)
+
+        # PLYR STAT CHANGES
+        plyrAtk = self.statsFont.render(str(self.plyrPkmn.getStatChanges()[1]), True, statColor)
+        plyrDef = self.statsFont.render(str(self.plyrPkmn.getStatChanges()[2]), True, statColor)
+        plyrSpAtk = self.statsFont.render(str(self.plyrPkmn.getStatChanges()[3]), True, statColor)
+        plyrSpDef = self.statsFont.render(str(self.plyrPkmn.getStatChanges()[4]), True, statColor)
+        plyrSpd = self.statsFont.render(str(self.plyrPkmn.getStatChanges()[5]), True, statColor)
+        screen.blit(plyrAtk, (self.topLeft[0] + 95, self.topLeft[1] + 81))
+        screen.blit(plyrDef, (self.topLeft[0] + 95, self.topLeft[1] + 112.5))
+        screen.blit(plyrSpAtk, (self.topLeft[0] + 95, self.topLeft[1] + 144))
+        screen.blit(plyrSpDef, (self.topLeft[0] + 119, self.topLeft[1] + 97))
+        screen.blit(plyrSpd, (self.topLeft[0] + 119, self.topLeft[1] + 128.5))
+
+        # CPU STAT CHANGES
+        cpuAtk = self.statsFont.render(str(self.cpuPkmn.getStatChanges()[1]), True, statColor)
+        cpuDef = self.statsFont.render(str(self.cpuPkmn.getStatChanges()[2]), True, statColor)
+        cpuSpAtk = self.statsFont.render(str(self.cpuPkmn.getStatChanges()[3]), True, statColor)
+        cpuSpDef = self.statsFont.render(str(self.cpuPkmn.getStatChanges()[4]), True, statColor)
+        cpuSpd = self.statsFont.render(str(self.cpuPkmn.getStatChanges()[5]), True, statColor)
+        screen.blit(cpuAtk, (self.topLeft[0] + 95, self.topLeft[1] + 351))
+        screen.blit(cpuDef, (self.topLeft[0] + 95, self.topLeft[1] + 382.5))
+        screen.blit(cpuSpAtk, (self.topLeft[0] + 95, self.topLeft[1] + 414))
+        screen.blit(cpuSpDef, (self.topLeft[0] + 119, self.topLeft[1] + 367))
+        screen.blit(cpuSpd, (self.topLeft[0] + 119, self.topLeft[1] + 398.5))
 
         # PLYR STATUS CONDITIONS
         if self.plyrPkmn.getConditions()[0] == True:

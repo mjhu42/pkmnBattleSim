@@ -67,7 +67,6 @@ def damageCalculator(atkPkmn, defPkmn, move):
 	if moveHiCrit == 1:
 		critProbability = 12
 	num = random.randint(1, 100)
-	print(num)
 	if num <= critProbability:
 		crit = 1.5
 
@@ -87,10 +86,14 @@ def statusCalculator(atkPkmn, defPkmn, move):
 	statusConds = move.getMoveStatus()
 	statChanges = move.getMoveDStat()
 
+	print(move, statusConds)
+
 	for status in range(0, len(statusConds)):
 		if statusConds[status] != "":
 			if statusConds[status].isdigit():
+				print(status)
 				defPkmn.changeConditions(status)
+				print(defPkmn.getConditions())
 			else:
 				atkPkmn.changeConditions(status)
 
@@ -102,8 +105,8 @@ def statusCalculator(atkPkmn, defPkmn, move):
 			else:
 				atkPkmn.changeStats(stat, int(lst[1]))
 
-	atkPkmnStatChanges = atkPkmn.getStatChanges()
-	defPkmnStatChanges = defPkmn.getStatChanges()
+	atkPkmnStatChanges = atkPkmn.getStatChanges()[1:]
+	defPkmnStatChanges = defPkmn.getStatChanges()[1:]
 	atkPkmnCond = atkPkmn.getConditions()
 	defPkmnCond = defPkmn.getConditions()
 

@@ -29,7 +29,7 @@ class Pokemon:
         self.isFainted = isFainted
         self.statChanges = statChanges
         self.ppChanges = [0, 0, 0, 0]
-        self.statusConditions = statusConditions # [burn, freeze, para, poison, sleep]
+        self.statusConditions = statusConditions # [burn, para, poison, sleep, freeze]
         self.isActive = isActive
         self.stagesDict = {-6: 0.25, -5: 0.28, -4: 0.33, -3: 0.2, -2: 0.5, -1: 0.66, 0: 1, 1: 1.5, 2: 2, 3: 2.5, 4: 3, 5: 3.5, 6: 4}
     
@@ -82,7 +82,8 @@ class Pokemon:
         for stat in range(1, len(self.baseStats)): # atk, def, sp. atk, sp. def, spd
             base = int((((2 * self.baseStats[stat] + iv + \
                       self.ev[stat]/evDivisor) * self.level) / 100) + 5)
-            formula = base * self.stagesDict[self.statChanges[stat]]
+            # print("STAT CHANGES:", self.statChanges)
+            formula = int(base * self.stagesDict[self.statChanges[stat]])
             adjStats.append(formula)
         return adjStats
     
@@ -108,6 +109,9 @@ class Pokemon:
     def getStatChanges(self):
         return self.statChanges
 
+    def changeHP(self, amount):
+        self.statChanges[0] += amount
+
     # change stats
     def changeStats(self, stat, stage):
         if stat == 0:
@@ -120,16 +124,20 @@ class Pokemon:
             self.statChanges[4] += stage
         elif stat == 4:
             self.statChanges[5] += stage
+        elif stat == 5:
+            self.statChanges[6] += stage
+        elif stat == 6:
+            self.statChanges[7] += stage
 
     def getPPChanges(self):
         return self.ppChanges
 
     # reset stats
     def resetStatConds(self):
-        self.statChanges = [0, 0, 0, 0, 0, 0]
+        self.statChanges = [0, 0, 0, 0, 0, 0, 0, 0]
         self.statusConditions = [False, False, False, False, False]
 
-    # get status
+    # get status: [burn, para, poison, sleep, freeze]
     def getConditions(self):
         return self.statusConditions
 
@@ -144,3 +152,15 @@ class Pokemon:
             self.statusConditions[3] = True
         elif cond == 4:
             self.statusConditions[4] = True
+
+    def changeConditionsFalse(self, cond):
+        if cond == 0:
+            self.statusConditions[0] = False
+        elif cond == 1:
+            self.statusConditions[1] = False
+        elif cond == 2:
+            self.statusConditions[2] = False
+        elif cond == 3:
+            self.statusConditions[3] = False
+        elif cond == 4:
+            self.statusConditions[4] = False
