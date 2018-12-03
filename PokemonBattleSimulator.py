@@ -18,6 +18,7 @@ from classes.moveClass import Move
 from classes.pkmnBoxClass import *
 from classes.hpBarClass import *
 from classes.characterClass import *
+from classes.dictBox import *
 from classes.external_modules.textbox import TextBox
 from classes.external_modules.gifImage import GifSprite
 
@@ -32,6 +33,9 @@ class BattleSimulator(PygameGame):
     def init(self):
         super().init()
 
+        self.pkmnSet = set()
+        self.moveSet = set()
+
         # POKÉMON DICTIONARY
         pkmnFile = "classes/spreadsheets/pokemon.csv"
         pkmnList = open(pkmnFile)
@@ -39,9 +43,11 @@ class BattleSimulator(PygameGame):
         for line in csvReaderPkmn:
             if line[0] == "Name":
                 continue
+            self.pkmnSet.add(line[0])
             BattleSimulator.POKEMON_DICT[line[0]] = line[1:13]
         pkmnList.close()
         # print(BattleSimulator.POKEMON_DICT)
+        # print(self.pkmnSet)
 
         # MOVES DICTIONARY
         movesFile = "classes/spreadsheets/moves.csv"
@@ -50,6 +56,7 @@ class BattleSimulator(PygameGame):
         for line in csvReaderMove:
             if line[0] == "Move":
                 continue
+            # self.moveSet.add(line[0])
             BattleSimulator.MOVES_DICT[line[0]] = line[1:7] + [[line[7:12], line[12:19], line[19:]]]
         movesList.close()
         # print(BattleSimulator.MOVES_DICT)
@@ -268,6 +275,9 @@ class BattleSimulator(PygameGame):
 
         saveIcon = pygame.image.load("images/pokeball_small.png").convert_alpha()
 
+        self.pkmnDictBG = pygame.image.load("images/pkmnDict.png")
+        self.movesDictBG = pygame.image.load("images/movesDict.png")
+
         # sprites
         self.inputSprite1 = None
         self.inputSprite2 = None
@@ -475,6 +485,42 @@ class BattleSimulator(PygameGame):
                               self.selectBox6]
 
         self.pkmnIcon = pygame.Rect((20, 70), (170, 170))
+
+        self.pkmnDictBox1 = DictBox((610, 105), (280, 530), self.pkmnSet)
+        self.move1DictBox1 = MoveDictBox((610, 105), (280, 530), self.moveSet)
+        self.move2DictBox1 = MoveDictBox((610, 105), (280, 530), self.moveSet)
+        self.move3DictBox1 = MoveDictBox((610, 105), (280, 530), self.moveSet)
+        self.move4DictBox1 = MoveDictBox((610, 105), (280, 530), self.moveSet)
+
+        self.pkmnDictBox2 = DictBox((610, 105), (280, 530), self.pkmnSet)
+        self.move1DictBox2 = MoveDictBox((610, 105), (280, 530), self.moveSet)
+        self.move2DictBox2 = MoveDictBox((610, 105), (280, 530), self.moveSet)
+        self.move3DictBox2 = MoveDictBox((610, 105), (280, 530), self.moveSet)
+        self.move4DictBox2 = MoveDictBox((610, 105), (280, 530), self.moveSet)
+
+        self.pkmnDictBox3 = DictBox((610, 105), (280, 530), self.pkmnSet)
+        self.move1DictBox3 = MoveDictBox((610, 105), (280, 530), self.moveSet)
+        self.move2DictBox3 = MoveDictBox((610, 105), (280, 530), self.moveSet)
+        self.move3DictBox3 = MoveDictBox((610, 105), (280, 530), self.moveSet)
+        self.move4DictBox3 = MoveDictBox((610, 105), (280, 530), self.moveSet)
+
+        self.pkmnDictBox4 = DictBox((610, 105), (280, 530), self.pkmnSet)
+        self.move1DictBox4 = MoveDictBox((610, 105), (280, 530), self.moveSet)
+        self.move2DictBox4 = MoveDictBox((610, 105), (280, 530), self.moveSet)
+        self.move3DictBox4 = MoveDictBox((610, 105), (280, 530), self.moveSet)
+        self.move4DictBox4 = MoveDictBox((610, 105), (280, 530), self.moveSet)
+
+        self.pkmnDictBox5 = DictBox((610, 105), (280, 530), self.pkmnSet)
+        self.move1DictBox5 = MoveDictBox((610, 105), (280, 530), self.moveSet)
+        self.move2DictBox5 = MoveDictBox((610, 105), (280, 530), self.moveSet)
+        self.move3DictBox5 = MoveDictBox((610, 105), (280, 530), self.moveSet)
+        self.move4DictBox5 = MoveDictBox((610, 105), (280, 530), self.moveSet)
+
+        self.pkmnDictBox6 = DictBox((610, 105), (280, 530), self.pkmnSet)
+        self.move1DictBox6 = MoveDictBox((610, 105), (280, 530), self.moveSet)
+        self.move2DictBox6 = MoveDictBox((610, 105), (280, 530), self.moveSet)
+        self.move3DictBox6 = MoveDictBox((610, 105), (280, 530), self.moveSet)
+        self.move4DictBox6 = MoveDictBox((610, 105), (280, 530), self.moveSet)
         
         
         
@@ -493,6 +539,9 @@ class BattleSimulator(PygameGame):
         self.invalidBattleSel = pygame.Rect((600, 0), (300, 650))
 
         self.battleButton = pygame.Rect((98, 505), (404, 89))
+
+        self.selectEasyButton = pygame.Rect((300, 243), (270, 80))
+        self.selectMedButton = pygame.Rect((300, 328), (270, 80))
         
         
         # IN-GAME STATES
@@ -502,6 +551,12 @@ class BattleSimulator(PygameGame):
         self.selectPokemon4 = False
         self.selectPokemon5 = False
         self.selectPokemon6 = False
+
+        self.ifPkmnDict = False
+        self.ifMoveDict = False
+
+        self.playEasy = False
+        self.playMedium = False
         
 
         ## BATTLE SCREEN
@@ -522,6 +577,7 @@ class BattleSimulator(PygameGame):
         self.battleBG = pygame.image.load("images/battle_bg.png")
         self.viewPartyBG = pygame.image.load("images/viewParty.png")
         self.checkRunIMG = pygame.image.load("images/checkRun.png")
+        self.transparentIMG = pygame.image.load("images/transparent.png")
 
         # BUTTONS
         self.chooseActionB = pygame.image.load("images/chooseActionButtons.png")
@@ -572,6 +628,8 @@ class BattleSimulator(PygameGame):
         # PLAYERS
         self.player = Player(self.playerActivePkmn, self.party, self.cpuActivePkmn, BattleSimulator.POKEMON_DICT, BattleSimulator.MOVES_DICT)
         self.cpuEasy = EasyOpponent(self.playerActivePkmn, self.party, self.cpuActivePkmn, self.cpuParty, BattleSimulator.POKEMON_DICT, BattleSimulator.MOVES_DICT)
+        self.cpuMed = MediumOpponent(self.playerActivePkmn, self.party, self.cpuActivePkmn, self.cpuParty,
+            BattleSimulator.POKEMON_DICT, BattleSimulator.MOVES_DICT)
 
         self.activeHPBar = None
         self.cpuHPBar = None
@@ -650,7 +708,12 @@ class BattleSimulator(PygameGame):
         spriteInit = GifSprite(pkmnFolderPath, frameNum, pkmnLower, (460, 140))
         self.cpuActiveSprite = pygame.sprite.Group(spriteInit)
 
-        self.cpuEasy = EasyOpponent(self.playerActivePkmn, self.party, self.cpuActivePkmn, BattleSimulator.POKEMON_DICT, BattleSimulator.MOVES_DICT, self.cpuParty)
+        if self.playEasy:
+            self.cpuEasy = EasyOpponent(self.playerActivePkmn, self.party, self.cpuActivePkmn, self.cpuParty, BattleSimulator.POKEMON_DICT, BattleSimulator.MOVES_DICT)
+        elif self.playMedium:
+            print("here!")
+            self.cpuMed = MediumOpponent(self.playerActivePkmn, self.party, self.cpuActivePkmn, self.cpuParty,
+                BattleSimulator.POKEMON_DICT, BattleSimulator.MOVES_DICT)
         
     #################
     ## GET POKÉMON ##
@@ -877,7 +940,6 @@ class BattleSimulator(PygameGame):
         for i in self.party:
             if i != None:
                 self.partySize += 1
-        print(self.partySize)
 
     ###############
     ## GET LEVEL ##
@@ -951,7 +1013,7 @@ class BattleSimulator(PygameGame):
                 print("First, please enter a valid Pokémon.")
             else:
                 validMoves = BattleSimulator.POKEMON_DICT[self.pkmn1Name.title()][11]
-                validMoves = [x.strip() for x in validMoves.split(",")]
+                validMoves = set(x.strip() for x in validMoves.split(","))
                 if properName in validMoves:
                     moveInfo = BattleSimulator.MOVES_DICT[properName]
                     currentMove = Move(properName, moveInfo[0], moveInfo[1], moveInfo[2], moveInfo[3], moveInfo[4],
@@ -977,7 +1039,7 @@ class BattleSimulator(PygameGame):
                 print("First, please enter a valid Pokémon.")
             else:
                 validMoves = BattleSimulator.POKEMON_DICT[self.pkmn2Name.title()][11]
-                validMoves = [x.strip() for x in validMoves.split(",")]
+                validMoves = set(x.strip() for x in validMoves.split(","))
                 if properName in validMoves:
                     moveInfo = BattleSimulator.MOVES_DICT[properName]
                     currentMove = Move(properName, moveInfo[0], moveInfo[1], moveInfo[2], moveInfo[3], moveInfo[4],
@@ -1003,7 +1065,7 @@ class BattleSimulator(PygameGame):
                 print("First, please enter a valid Pokémon.")
             else:
                 validMoves = BattleSimulator.POKEMON_DICT[self.pkmn3Name.title()][11]
-                validMoves = [x.strip() for x in validMoves.split(",")]
+                validMoves = set(x.strip() for x in validMoves.split(","))
                 if properName in validMoves:
                     moveInfo = BattleSimulator.MOVES_DICT[properName]
                     currentMove = Move(properName, moveInfo[0], moveInfo[1], moveInfo[2], moveInfo[3], moveInfo[4],
@@ -1029,7 +1091,7 @@ class BattleSimulator(PygameGame):
                 print("First, please enter a valid Pokémon.")
             else:
                 validMoves = BattleSimulator.POKEMON_DICT[self.pkmn4Name.title()][11]
-                validMoves = [x.strip() for x in validMoves.split(",")]
+                validMoves = set(x.strip() for x in validMoves.split(","))
                 if properName in validMoves:
                     moveInfo = BattleSimulator.MOVES_DICT[properName]
                     currentMove = Move(properName, moveInfo[0], moveInfo[1], moveInfo[2], moveInfo[3], moveInfo[4],
@@ -1055,7 +1117,7 @@ class BattleSimulator(PygameGame):
                 print("First, please enter a valid Pokémon.")
             else:
                 validMoves = BattleSimulator.POKEMON_DICT[self.pkmn5Name.title()][11]
-                validMoves = [x.strip() for x in validMoves.split(",")]
+                validMoves = set(x.strip() for x in validMoves.split(","))
                 if properName in validMoves:
                     moveInfo = BattleSimulator.MOVES_DICT[properName]
                     currentMove = Move(properName, moveInfo[0], moveInfo[1], moveInfo[2], moveInfo[3], moveInfo[4],
@@ -1081,7 +1143,7 @@ class BattleSimulator(PygameGame):
                 print("First, please enter a valid Pokémon.")
             else:
                 validMoves = BattleSimulator.POKEMON_DICT[self.pkmn6Name.title()][11]
-                validMoves = [x.strip() for x in validMoves.split(",")]
+                validMoves = set(x.strip() for x in validMoves.split(","))
                 if properName in validMoves:
                     moveInfo = BattleSimulator.MOVES_DICT[properName]
                     currentMove = Move(properName, moveInfo[0], moveInfo[1], moveInfo[2], moveInfo[3], moveInfo[4],
@@ -1245,13 +1307,22 @@ class BattleSimulator(PygameGame):
     ## CPU SWITCH ##
     ################
     def cpuSwitch(self):
-        if self.cpuEasy.switchOut() != 0:
-            return self.cpuEasy.switchOut()
-        else:
-            self.gameOver = True
-            self.playerWon = True
-            self.battleScreen = False
-            return None
+        if self.playEasy:
+            if self.cpuEasy.switchOut() != 0:
+                return self.cpuEasy.switchOut()
+            else:
+                self.gameOver = True
+                self.playerWon = True
+                self.battleScreen = False
+                return None
+        elif self.playMedium:
+            if self.cpuMed.switchOut() != 0:
+                return self.cpuMed.switchOut()
+            else:
+                self.gameOver = True
+                self.playerWon = True
+                self.battleScreen = False
+                return None
 
     #####################################
     ## STAT/COND. CHANGES DUE TO MOVES ##
@@ -1271,11 +1342,22 @@ class BattleSimulator(PygameGame):
             if effects[3][cpuChange] != False:
                 self.cpuActivePkmn.changeConditions(cpuChange)
 
+    #####################
+    ## CPU SWITCH TURN ##
+    #####################
+    def cpuSwitchTurn(self):
+        self.cpuUsedMove = self.cpuMed.useMove()
+
     ##########
     ## TURN ##
     ##########
     def turn(self):
-        self.cpuUsedMove = self.cpuEasy.useMove() # initialize cpu move
+        if self.playEasy: # initialize cpu move
+            print("playing EasyOpponent")
+            self.cpuUsedMove = self.cpuEasy.useMove()
+        elif self.playMedium:
+            print("playing MediumOpponent")
+            # self.cpuUsedMove = self.cpuMed.useMove()
         plyrSpeed = self.playerActivePkmn.getBattleStats()[5] # player speed
         cpuSpeed = self.cpuActivePkmn.getBattleStats()[5] # cpu speed
 
@@ -1292,7 +1374,22 @@ class BattleSimulator(PygameGame):
             cpuSpeed //= 2
         
         if self.cpuActivePkmn != None and self.playerActivePkmn != None:
-            if cpuSpeed > plyrSpeed: # if opposing pkmn is faster than plyr pkmn
+            if self.cpuUsedMove[0] == "switch":
+                hpLeft = self.cpuActivePkmn.getBattleStats()[0] - self.cpuActivePkmn.getStatChanges()[0]
+                # if move from plyr WILL NOT KO
+                if self.plyrUsedMove[0] < hpLeft:
+                    self.cpuActivePkmn.changeHP(self.plyrUsedMove[0])
+                    # cpu does not attack here, since it used its turn to switch
+                else:
+                    self.plyrUsedMove[0] = hpLeft
+                    self.cpuActivePkmn.changeHP(self.plyrUsedMove[0])
+                    self.cpuActivePkmn.changeToFainted()
+                    self.cpuFainted.append(self.cpuActivePkmn)
+                    self.cpuActivePkmn = self.cpuSwitch()
+                    if self.cpuActivePkmn != None:
+                        self.player.updateOppActive(self.cpuActivePkmn)
+                        self.cpuActiveSprite = self.cpuMed.updateCPUSprite(self.cpuActivePkmn, BattleSimulator.POKEMON_DICT) # this is always only going to happen on reg. setting
+            elif cpuSpeed > plyrSpeed: # if opposing pkmn is faster than plyr pkmn
                 # check if move will faint the plyr pkmn
                 hpLeft = self.playerActivePkmn.getBattleStats()[0] - self.playerActivePkmn.getStatChanges()[0]
 
@@ -1310,7 +1407,10 @@ class BattleSimulator(PygameGame):
                         self.cpuActivePkmn = self.cpuSwitch()
                         if self.cpuActivePkmn != None:
                             self.player.updateOppActive(self.cpuActivePkmn)
-                            self.cpuActiveSprite = self.cpuEasy.updateCPUSprite(self.cpuActivePkmn, BattleSimulator.POKEMON_DICT)
+                            if self.playEasy:
+                                self.cpuActiveSprite = self.cpuEasy.updateCPUSprite(self.cpuActivePkmn, BattleSimulator.POKEMON_DICT)
+                            elif self.playMedium:
+                                self.cpuActiveSprite = self.cpuMed.updateCPUSprite(self.cpuActivePkmn, BattleSimulator.POKEMON_DICT)
 
                 # if move from cpu WILL KO:
                 else:
@@ -1324,7 +1424,6 @@ class BattleSimulator(PygameGame):
                 # if move from plyr WILL NOT KO
                 if self.plyrUsedMove[0] < hpLeft:
                     self.cpuActivePkmn.changeHP(self.plyrUsedMove[0])
-                    # self.getMoveStatChanges(effects)
                     hpLeft = self.playerActivePkmn.getBattleStats()[0] - self.playerActivePkmn.getStatChanges()[0]
                     if self.cpuUsedMove[0] < hpLeft:
                         self.playerActivePkmn.changeHP(self.cpuUsedMove[0])
@@ -1343,7 +1442,10 @@ class BattleSimulator(PygameGame):
                     self.cpuActivePkmn = self.cpuSwitch()
                     if self.cpuActivePkmn != None:
                         self.player.updateOppActive(self.cpuActivePkmn)
-                        self.cpuActiveSprite = self.cpuEasy.updateCPUSprite(self.cpuActivePkmn, BattleSimulator.POKEMON_DICT)
+                        if self.playEasy:
+                            self.cpuActiveSprite = self.cpuEasy.updateCPUSprite(self.cpuActivePkmn, BattleSimulator.POKEMON_DICT)
+                        elif self.playMedium:
+                            self.cpuActiveSprite = self.cpuMed.updateCPUSprite(self.cpuActivePkmn, BattleSimulator.POKEMON_DICT)
             else: # if speed tie
                 speedTie = random.randint(0, 1)
                 if speedTie == 0:
@@ -1368,7 +1470,10 @@ class BattleSimulator(PygameGame):
                         self.cpuActivePkmn = self.cpuSwitch()
                         if self.cpuActivePkmn != None:
                             self.player.updateOppActive(self.cpuActivePkmn)
-                            self.cpuActiveSprite = self.cpuEasy.updateCPUSprite(self.cpuActivePkmn, BattleSimulator.POKEMON_DICT)
+                            if self.playEasy:
+                                self.cpuActiveSprite = self.cpuEasy.updateCPUSprite(self.cpuActivePkmn, BattleSimulator.POKEMON_DICT)
+                            elif self.playMedium:
+                                self.cpuActiveSprite = self.cpuMed.updateCPUSprite(self.cpuActivePkmn, BattleSimulator.POKEMON_DICT)
         
         # BURN MECHANICS: LOSE 1/16 OF HP AT END OF TURN
         if isPlayerBurned:
@@ -1394,7 +1499,10 @@ class BattleSimulator(PygameGame):
                 self.cpuActivePkmn = self.cpuSwitch()
                 if self.cpuActivePkmn != None:
                     self.player.updateOppActive(self.cpuActivePkmn)
-                    self.cpuActiveSprite = self.cpuEasy.updateCPUSprite(self.cpuActivePkmn, BattleSimulator.POKEMON_DICT)
+                    if self.playEasy:
+                        self.cpuActiveSprite = self.cpuEasy.updateCPUSprite(self.cpuActivePkmn, BattleSimulator.POKEMON_DICT)
+                    elif self.playMedium:
+                        self.cpuActiveSprite = self.cpuMed.updateCPUSprite(self.cpuActivePkmn, BattleSimulator.POKEMON_DICT)
             else:
                 self.cpuActivePkmn.changeHP(damageDealt)
                 print("%s was hurt by its burn!") % (self.cpuActivePkmn)
@@ -1411,7 +1519,7 @@ class BattleSimulator(PygameGame):
                 self.plyrJustFainted = True
             else:
                 self.playerActivePkmn.changeHP(damageDealt)
-                msg = ("%s was hurt by its burn!") % (self.playerActivePkmn)
+                msg = ("%s was hurt by poison!") % (self.playerActivePkmn)
                 print(msg)
         if isCPUPoisoned:
             hpLeft = self.cpuActivePkmn.getBattleStats()[0] - self.cpuActivePkmn.getStatChanges()[0]
@@ -1424,31 +1532,37 @@ class BattleSimulator(PygameGame):
                 self.cpuActivePkmn = self.cpuSwitch()
                 if self.cpuActivePkmn != None:
                     self.player.updateOppActive(self.cpuActivePkmn)
-                    self.cpuActiveSprite = self.cpuEasy.updateCPUSprite(self.cpuActivePkmn, BattleSimulator.POKEMON_DICT)
+                    if self.playEasy:
+                        self.cpuActiveSprite = self.cpuEasy.updateCPUSprite(self.cpuActivePkmn, BattleSimulator.POKEMON_DICT)
+                    elif self.playMedium:
+                        self.cpuActiveSprite = self.cpuMed.updateCPUSprite(self.cpuActivePkmn, BattleSimulator.POKEMON_DICT)
             else:
                 self.cpuActivePkmn.changeHP(damageDealt)
-                msg = ("%s was hurt by its burn!") % (self.cpuActivePkmn)
+                msg = ("%s was hurt by poison!") % (self.cpuActivePkmn)
                 print(msg)
         if len(self.playerFainted) == self.partySize:
             self.gameOver = True
             self.cpuWon = True
             self.battleScreen = False
 
-
     #####################
     ## SWITCH OUT TURN ##
     #####################
     def switchTurn(self):
-        self.cpuUsedMove = self.cpuEasy.useMove() # initialize cpu move
+        if self.playEasy: # initialize cpu move
+            self.cpuUsedMove = self.cpuEasy.useMove()
+        elif self.playMedium:
+            self.cpuUsedMove = self.cpuMed.useMove()
         hpLeft = self.playerActivePkmn.getBattleStats()[0] - self.playerActivePkmn.getStatChanges()[0]
-        if self.cpuUsedMove[0] < hpLeft:
-            self.playerActivePkmn.getStatChanges()[0] += self.cpuUsedMove[0]
-        else:
-            self.cpuUsedMove[0] = hpLeft
-            self.playerActivePkmn.getStatChanges()[0] += self.cpuUsedMove[0]
-            self.playerActivePkmn.changeToFainted()
-            self.playerFainted.append(self.playerActivePkmn)
-            self.plyrJustFainted = True
+        if self.cpuUsedMove[0] != "switch":
+            if self.cpuUsedMove[0] < hpLeft:
+                self.playerActivePkmn.getStatChanges()[0] += self.cpuUsedMove[0]
+            else:
+                self.cpuUsedMove[0] = hpLeft
+                self.playerActivePkmn.getStatChanges()[0] += self.cpuUsedMove[0]
+                self.playerActivePkmn.changeToFainted()
+                self.playerFainted.append(self.playerActivePkmn)
+                self.plyrJustFainted = True
 
     ###############
     ## RESET ALL ##
@@ -1468,9 +1582,9 @@ class BattleSimulator(PygameGame):
 
         # text input
         for txt in self.input1List:
-            txt.change_ClearOnClear()
+            txt.clearBox()
         for ev in self.inputEV1List:
-            ev.change_ClearOnClear()
+            ev.clearBox()
 
         # select screen box
         self.selectBox1 = Box(self.pkmn1, self.pkmn1Type1, self.pkmn1Type2, (610, 14), (280, 92))
@@ -1488,9 +1602,9 @@ class BattleSimulator(PygameGame):
 
         # text input
         for txt in self.input2List:
-            txt.change_ClearOnClear()
+            txt.clearBox()
         for ev in self.inputEV2List:
-            ev.change_ClearOnClear()
+            ev.clearBox()
 
         # select screen box
         self.selectBox2 = Box(self.pkmn2, self.pkmn2Type1, self.pkmn2Type2, (610, 120), (280, 92))
@@ -1508,9 +1622,9 @@ class BattleSimulator(PygameGame):
 
         # text input
         for txt in self.input3List:
-            txt.change_ClearOnClear()
+            txt.clearBox()
         for ev in self.inputEV3List:
-            ev.change_ClearOnClear()
+            ev.clearBox()
 
         # select screen box
         self.selectBox3 = Box(self.pkmn3, self.pkmn3Type1, self.pkmn3Type2, (610, 226), (280, 92))
@@ -1528,9 +1642,9 @@ class BattleSimulator(PygameGame):
 
         # text input
         for txt in self.input4List:
-            txt.change_ClearOnClear()
+            txt.clearBox()
         for ev in self.inputEV4List:
-            ev.change_ClearOnClear()
+            ev.clearBox()
 
         # select screen box
         self.selectBox4 = Box(self.pkmn4, self.pkmn4Type1, self.pkmn4Type2, (610, 332), (280, 92))
@@ -1548,9 +1662,9 @@ class BattleSimulator(PygameGame):
 
         # text input
         for txt in self.input5List:
-            txt.change_ClearOnClear()
+            txt.clearBox()
         for ev in self.inputEV5List:
-            ev.change_ClearOnClear()
+            ev.clearBox()
 
         # select screen box
         self.selectBox5 = Box(self.pkmn5, self.pkmn5Type1, self.pkmn5Type2, (610, 438), (280, 92))
@@ -1568,9 +1682,9 @@ class BattleSimulator(PygameGame):
 
         # text input
         for txt in self.input6List:
-            txt.change_ClearOnClear()
+            txt.clearBox()
         for ev in self.inputEV6List:
-            ev.change_ClearOnClear()
+            ev.clearBox()
 
         # select screen box
         self.selectBox6 = Box(self.pkmn6, self.pkmn6Type1, self.pkmn6Type2, (610, 544), (280, 92))
@@ -1594,12 +1708,29 @@ class BattleSimulator(PygameGame):
             clickedBack = self.backButton.collidepoint(pygame.mouse.get_pos())
             clearPkmn = self.clearButton.collidepoint(pygame.mouse.get_pos())
             invalidPosBattleSel = self.invalidBattleSel.collidepoint(pygame.mouse.get_pos())
+            easy = self.selectEasyButton.collidepoint(pygame.mouse.get_pos())
+            med = self.selectMedButton.collidepoint(pygame.mouse.get_pos())
             playGame = self.battleButton.collidepoint(pygame.mouse.get_pos())
+            notSelecting = not self.selectPokemon1 and not self.selectPokemon2 and not \
+            self.selectPokemon3 and not self.selectPokemon4 and not self.selectPokemon5 and not \
+            self.selectPokemon6
+
+            # SELECT LEVEL
+            if easy and notSelecting:
+                self.cpuEasy = EasyOpponent(self.playerActivePkmn, self.party, self.cpuActivePkmn, self.cpuParty, BattleSimulator.POKEMON_DICT, BattleSimulator.MOVES_DICT)
+                self.playEasy = True
+                self.playMedium = False
+            elif med and notSelecting:
+                print("here! 2")
+                self.cpuMed = MediumOpponent(self.playerActivePkmn, self.party, self.cpuActivePkmn, self.cpuParty, BattleSimulator.POKEMON_DICT, BattleSimulator.MOVES_DICT)
+                print(self.playerActivePkmn)
+                self.playMedium = True
+                self.playEasy = False
             
             # PLAY GAME
-            if playGame and not self.selectPokemon1 and not self.selectPokemon2 and not \
-            self.selectPokemon3 and not self.selectPokemon4 and not self.selectPokemon5 and not \
-            self.selectPokemon6:
+            if playGame and self.playEasy == False and self.playMedium == False:
+                print("Please select a CPU level.")
+            elif playGame and notSelecting:
                 if self.party == [None, None, None, None, None, None]:
                     print("Please add at least one Pokémon to your party.")
                 else:
@@ -1646,9 +1777,9 @@ class BattleSimulator(PygameGame):
 
                     # text input
                     for txt in self.input1List:
-                        txt.change_ClearOnClear()
+                        txt.clearBox()
                     for ev in self.inputEV1List:
-                        ev.change_ClearOnClear()
+                        ev.clearBox()
 
                     # select screen box
                     self.selectBox1 = Box(self.pkmn1, self.pkmn1Type1, self.pkmn1Type2, (610, 14), (280, 92))
@@ -1676,9 +1807,9 @@ class BattleSimulator(PygameGame):
 
                     # text input
                     for txt in self.input2List:
-                        txt.change_ClearOnClear()
+                        txt.clearBox()
                     for ev in self.inputEV2List:
-                        ev.change_ClearOnClear()
+                        ev.clearBox()
 
                     # select screen box
                     self.selectBox2 = Box(self.pkmn2, self.pkmn2Type1, self.pkmn2Type2, (610, 120), (280, 92))
@@ -1706,9 +1837,9 @@ class BattleSimulator(PygameGame):
 
                     # text input
                     for txt in self.input3List:
-                        txt.change_ClearOnClear()
+                        txt.clearBox()
                     for ev in self.inputEV3List:
-                        ev.change_ClearOnClear()
+                        ev.clearBox()
 
                     # select screen box
                     self.selectBox3 = Box(self.pkmn3, self.pkmn3Type1, self.pkmn3Type2, (610, 226), (280, 92))
@@ -1736,9 +1867,9 @@ class BattleSimulator(PygameGame):
 
                     # text input
                     for txt in self.input4List:
-                        txt.change_ClearOnClear()
+                        txt.clearBox()
                     for ev in self.inputEV4List:
-                        ev.change_ClearOnClear()
+                        ev.clearBox()
 
                     # select screen box
                     self.selectBox4 = Box(self.pkmn4, self.pkmn4Type1, self.pkmn4Type2, (610, 332), (280, 92))
@@ -1766,9 +1897,9 @@ class BattleSimulator(PygameGame):
 
                     # text input
                     for txt in self.input5List:
-                        txt.change_ClearOnClear()
+                        txt.clearBox()
                     for ev in self.inputEV5List:
-                        ev.change_ClearOnClear()
+                        ev.clearBox()
 
                     # select screen box
                     self.selectBox5 = Box(self.pkmn5, self.pkmn5Type1, self.pkmn5Type2, (610, 438), (280, 92))
@@ -1796,9 +1927,9 @@ class BattleSimulator(PygameGame):
 
                     # text input
                     for txt in self.input6List:
-                        txt.change_ClearOnClear()
+                        txt.clearBox()
                     for ev in self.inputEV6List:
-                        ev.change_ClearOnClear()
+                        ev.clearBox()
 
                     # select screen box
                     self.selectBox6 = Box(self.pkmn6, self.pkmn6Type1, self.pkmn6Type2, (610, 544), (280, 92))
@@ -1824,7 +1955,10 @@ class BattleSimulator(PygameGame):
                     notFainted = self.pkmn1 not in self.playerFainted
                     if self.pkmn1 != self.playerActivePkmn and self.pkmn1 != None and notFainted:
                         self.updateActivePkmn(currentActive, self.pkmn1)
-                        self.cpuEasy.updateOppActive(self.playerActivePkmn)
+                        if self.playEasy:
+                            self.cpuEasy.updateOppActive(self.playerActivePkmn)
+                        elif self.playMedium:
+                            self.cpuMed.updateOppActive(self.playerActivePkmn)
                         self.viewParty = False
                         if not self.plyrJustFainted:
                             self.switchTurn()
@@ -1836,7 +1970,10 @@ class BattleSimulator(PygameGame):
                     notFainted = self.pkmn2 not in self.playerFainted
                     if self.pkmn2 != self.playerActivePkmn and self.pkmn2 != None and notFainted:
                         self.updateActivePkmn(currentActive, self.pkmn2)
-                        self.cpuEasy.updateOppActive(self.playerActivePkmn)
+                        if self.playEasy:
+                            self.cpuEasy.updateOppActive(self.playerActivePkmn)
+                        elif self.playMedium:
+                            self.cpuMed.updateOppActive(self.playerActivePkmn)
                         self.viewParty = False
                         if not self.plyrJustFainted:
                             self.switchTurn()
@@ -1848,7 +1985,10 @@ class BattleSimulator(PygameGame):
                     notFainted = self.pkmn3 not in self.playerFainted
                     if self.pkmn3 != self.playerActivePkmn and self.pkmn3 != None and notFainted:
                         self.updateActivePkmn(currentActive, self.pkmn3)
-                        self.cpuEasy.updateOppActive(self.playerActivePkmn)
+                        if self.playEasy:
+                            self.cpuEasy.updateOppActive(self.playerActivePkmn)
+                        elif self.playMedium:
+                            self.cpuMed.updateOppActive(self.playerActivePkmn)
                         self.viewParty = False
                         if not self.plyrJustFainted:
                             self.switchTurn()
@@ -1860,7 +2000,10 @@ class BattleSimulator(PygameGame):
                     notFainted = self.pkmn4 not in self.playerFainted
                     if self.pkmn4 != self.playerActivePkmn and self.pkmn4 != None and notFainted:
                         self.updateActivePkmn(currentActive, self.pkmn4)
-                        self.cpuEasy.updateOppActive(self.playerActivePkmn)
+                        if self.playEasy:
+                            self.cpuEasy.updateOppActive(self.playerActivePkmn)
+                        elif self.playMedium:
+                            self.cpuMed.updateOppActive(self.playerActivePkmn)
                         self.viewParty = False
                         if not self.plyrJustFainted:
                             self.switchTurn()
@@ -1872,7 +2015,10 @@ class BattleSimulator(PygameGame):
                     notFainted = self.pkmn5 not in self.playerFainted
                     if self.pkmn5 != self.playerActivePkmn and self.pkmn5 != None and notFainted:
                         self.updateActivePkmn(currentActive, self.pkmn5)
-                        self.cpuEasy.updateOppActive(self.playerActivePkmn)
+                        if self.playEasy:
+                            self.cpuEasy.updateOppActive(self.playerActivePkmn)
+                        elif self.playMedium:
+                            self.cpuMed.updateOppActive(self.playerActivePkmn)
                         self.viewParty = False
                         if not self.plyrJustFainted:
                             self.switchTurn()
@@ -1884,7 +2030,10 @@ class BattleSimulator(PygameGame):
                     notFainted = self.pkmn6 not in self.playerFainted
                     if self.pkmn6 != self.playerActivePkmn and self.pkmn6 != None and notFainted:
                         self.updateActivePkmn(currentActive, self.pkmn6)
-                        self.cpuEasy.updateOppActive(self.playerActivePkmn)
+                        if self.playEasy:
+                            self.cpuEasy.updateOppActive(self.playerActivePkmn)
+                        elif self.playMedium:
+                            self.cpuMed.updateOppActive(self.playerActivePkmn)
                         self.viewParty = False
                         if not self.plyrJustFainted:
                             self.switchTurn()
@@ -1897,6 +2046,12 @@ class BattleSimulator(PygameGame):
             elif self.pickMoves:
                 self.activeMoves = self.playerActivePkmn.getMoves()
                 if self.move1Button.collidepoint(pygame.mouse.get_pos()) and self.activeMoves[0] != None:
+                    if self.playMedium:
+                        self.cpuUsedMove = self.cpuMed.useMove()
+                        if self.cpuUsedMove[0] == "switch":
+                            self.cpuActivePkmn = self.cpuMed.switchOutInTurn(self.cpuUsedMove[1])
+                            self.player.updateOppActive(self.cpuActivePkmn)
+                            self.cpuActiveSprite = self.cpuMed.updateCPUSprite(self.cpuActivePkmn, BattleSimulator.POKEMON_DICT)
                     self.plyrUsedMove = self.player.useMove(self.activeMoves[0])
                     plyrDmgDealt = self.plyrUsedMove[0]
                     plyrDStatus = copy.deepcopy(self.plyrUsedMove[1])
@@ -1905,6 +2060,12 @@ class BattleSimulator(PygameGame):
                     self.chooseAction = True
                     print("Player dealt", plyrDmgDealt)
                 elif self.move2Button.collidepoint(pygame.mouse.get_pos()) and self.activeMoves[1] != None:
+                    if self.playMedium:
+                        self.cpuUsedMove = self.cpuMed.useMove()
+                        if self.cpuUsedMove[0] == "switch":
+                            self.cpuActivePkmn = self.cpuMed.switchOutInTurn(self.cpuUsedMove[1])
+                            self.player.updateOppActive(self.cpuActivePkmn)
+                            self.cpuActiveSprite = self.cpuMed.updateCPUSprite(self.cpuActivePkmn, BattleSimulator.POKEMON_DICT)
                     self.plyrUsedMove = self.player.useMove(self.activeMoves[1])
                     plyrDmgDealt = self.plyrUsedMove[0]
                     plyrDStatus = copy.deepcopy(self.plyrUsedMove[1])
@@ -1913,6 +2074,12 @@ class BattleSimulator(PygameGame):
                     self.chooseAction = True
                     print("Player dealt", plyrDmgDealt)
                 elif self.move3Button.collidepoint(pygame.mouse.get_pos()) and self.activeMoves[2] != None:
+                    if self.playMedium:
+                        self.cpuUsedMove = self.cpuMed.useMove()
+                        if self.cpuUsedMove[0] == "switch":
+                            self.cpuActivePkmn = self.cpuMed.switchOutInTurn(self.cpuUsedMove[1])
+                            self.player.updateOppActive(self.cpuActivePkmn)
+                            self.cpuActiveSprite = self.cpuMed.updateCPUSprite(self.cpuActivePkmn, BattleSimulator.POKEMON_DICT)
                     self.plyrUsedMove = self.player.useMove(self.activeMoves[2])
                     plyrDmgDealt = self.plyrUsedMove[0]
                     plyrDStatus = copy.deepcopy(self.plyrUsedMove[1])
@@ -1921,6 +2088,12 @@ class BattleSimulator(PygameGame):
                     self.chooseAction = True
                     print("Player dealt", plyrDmgDealt)
                 elif self.move4Button.collidepoint(pygame.mouse.get_pos()) and self.activeMoves[3] != None:
+                    if self.playMedium:
+                        self.cpuUsedMove = self.cpuMed.useMove()
+                        if self.cpuUsedMove[0] == "switch":
+                            self.cpuActivePkmn = self.cpuMed.switchOutInTurn(self.cpuUsedMove[1])
+                            self.player.updateOppActive(self.cpuActivePkmn)
+                            self.cpuActiveSprite = self.cpuMed.updateCPUSprite(self.cpuActivePkmn, BattleSimulator.POKEMON_DICT)
                     self.plyrUsedMove = self.player.useMove(self.activeMoves[3])
                     plyrDmgDealt = self.plyrUsedMove[0]
                     plyrDStatus = copy.deepcopy(self.plyrUsedMove[1])
@@ -2017,6 +2190,11 @@ class BattleSimulator(PygameGame):
             screen.blit(self.selectBG, (0, 0))
             screen.blit(self.playButton1, self.playButton1Rect)
 
+            if self.playEasy:
+                screen.blit(self.transparentIMG, (300, 243))
+            elif self.playMedium:
+                screen.blit(self.transparentIMG, (300, 328))
+
             # draw select boxes (sidebar) + ornaments
             if self.pkmn1 != None:
                 self.selectBox1 = Box(self.pkmn1, self.pkmn1Type1, self.pkmn1Type2, (610, 14), (280, 92))
@@ -2038,7 +2216,7 @@ class BattleSimulator(PygameGame):
             self.selectBox6.draw(screen)
 
             # draw select pokemon boxes
-            if self.selectPokemon1 == True:
+            if self.selectPokemon1:
                 screen.blit(self.trprtSelectBG, (0, 0))
                 self.saveIcon.draw(screen)
                 screen.blit(self.selectedPkmnBG, (30, 80))
@@ -2078,8 +2256,39 @@ class BattleSimulator(PygameGame):
                 for i in range(0, 6):
                     screen.blit(self.evTxtList[i], (470, self.statTxtYCoordsList[i]))
 
+                # PKMN DICT
+                if self.pkmn1 == None:
+                    screen.blit(self.pkmnDictBG, (600, 55))
+                    self.pkmnDictBox1 = DictBox((610, 105), (280, 530), self.pkmnSet, self.textInputPkmn1.getBuffer())
+                    self.pkmnDictBox1.draw(screen)
+
                 # IMGS TO DRAW ONLY IF SELF.PKMN1 IS FILLED
                 if self.pkmn1 != None:
+                    isActive = self.inputPkmn1Move1.isActive() or self.inputPkmn1Move2.isActive() or self.inputPkmn1Move3.isActive() or self.inputPkmn1Move4.isActive()
+                    # move dict
+                    if isActive:
+                        screen.blit(self.movesDictBG, (600, 55))
+                    validMoves = BattleSimulator.POKEMON_DICT[self.pkmn1Name.title()][11]
+                    self.moveSet = set(x.strip() for x in validMoves.split(","))
+
+                    # MOVE TEXT BOX ACTIVE DICT STUFF
+                    if self.inputPkmn1Move1.isActive():
+                        self.move1DictBox1 = MoveDictBox((610, 105), (280, 530), self.moveSet,
+                                                         self.inputPkmn1Move1.getBuffer(), self.pkmn1.getMoveNames())
+                        self.move1DictBox1.draw(screen)
+                    elif self.inputPkmn1Move2.isActive():
+                        self.move2DictBox1 = MoveDictBox((610, 105), (280, 530), self.moveSet,
+                                                         self.inputPkmn1Move2.getBuffer(), self.pkmn1.getMoveNames())
+                        self.move2DictBox1.draw(screen)
+                    elif self.inputPkmn1Move3.isActive():
+                        self.move3DictBox1 = MoveDictBox((610, 105), (280, 530), self.moveSet,
+                                                         self.inputPkmn1Move3.getBuffer(), self.pkmn1.getMoveNames())
+                        self.move3DictBox1.draw(screen)
+                    elif self.inputPkmn1Move4.isActive():
+                        self.move4DictBox1 = MoveDictBox((610, 105), (280, 530), self.moveSet,
+                                                         self.inputPkmn1Move4.getBuffer(), self.pkmn1.getMoveNames())
+                        self.move4DictBox1.draw(screen)
+
                     # sprite
                     if self.inputSprite1 != None:
                         self.inputSprite1.draw(screen)
@@ -2141,7 +2350,7 @@ class BattleSimulator(PygameGame):
                         screen.blit(mvPower, (269, 569))
                         screen.blit(mvAcc, (291, 587))
                                
-            elif self.selectPokemon2 == True:
+            elif self.selectPokemon2:
                 screen.blit(self.trprtSelectBG, (0, 0))
                 self.saveIcon.draw(screen)
                 screen.blit(self.selectedPkmnBG, (30, 80))
@@ -2181,8 +2390,39 @@ class BattleSimulator(PygameGame):
                 for i in range(0, 6):
                     screen.blit(self.evTxtList[i], (470, self.statTxtYCoordsList[i]))
 
+                # PKMN DICT
+                if self.pkmn2 == None:
+                    screen.blit(self.pkmnDictBG, (600, 55))
+                    self.pkmnDictBox2 = DictBox((610, 105), (280, 530), self.pkmnSet, self.textInputPkmn2.getBuffer())
+                    self.pkmnDictBox2.draw(screen)
+
                 # IMGS TO DRAW ONLY IF SELF.PKMN2 IS FILLED
                 if self.pkmn2 != None:
+                    isActive = self.inputPkmn2Move1.isActive() or self.inputPkmn2Move2.isActive() or self.inputPkmn2Move3.isActive() or self.inputPkmn2Move4.isActive()
+                    # move dict
+                    if isActive:
+                        screen.blit(self.movesDictBG, (600, 55))
+                    validMoves = BattleSimulator.POKEMON_DICT[self.pkmn2Name.title()][11]
+                    self.moveSet = set(x.strip() for x in validMoves.split(","))
+
+                    # MOVE TEXT BOX ACTIVE DICT STUFF
+                    if self.inputPkmn2Move1.isActive():
+                        self.move1DictBox2 = MoveDictBox((610, 105), (280, 530), self.moveSet,
+                                                         self.inputPkmn2Move1.getBuffer(), self.pkmn2.getMoveNames())
+                        self.move1DictBox2.draw(screen)
+                    elif self.inputPkmn2Move2.isActive():
+                        self.move2DictBox2 = MoveDictBox((610, 105), (280, 530), self.moveSet,
+                                                         self.inputPkmn2Move2.getBuffer(), self.pkmn2.getMoveNames())
+                        self.move2DictBox2.draw(screen)
+                    elif self.inputPkmn2Move3.isActive():
+                        self.move3DictBox2 = MoveDictBox((610, 105), (280, 530), self.moveSet,
+                                                         self.inputPkmn2Move3.getBuffer(), self.pkmn2.getMoveNames())
+                        self.move3DictBox2.draw(screen)
+                    elif self.inputPkmn2Move4.isActive():
+                        self.move4DictBox2 = MoveDictBox((610, 105), (280, 530), self.moveSet,
+                                                         self.inputPkmn2Move4.getBuffer(), self.pkmn2.getMoveNames())
+                        self.move4DictBox2.draw(screen)
+
                     # SPRITE
                     if self.inputSprite2 != None:
                         self.inputSprite2.draw(screen)
@@ -2242,7 +2482,7 @@ class BattleSimulator(PygameGame):
                         screen.blit(mvPower, (269, 569))
                         screen.blit(mvAcc, (291, 587))
             
-            elif self.selectPokemon3 == True:
+            elif self.selectPokemon3:
                 screen.blit(self.trprtSelectBG, (0, 0))
                 self.saveIcon.draw(screen)
                 screen.blit(self.selectedPkmnBG, (30, 80))
@@ -2282,8 +2522,39 @@ class BattleSimulator(PygameGame):
                 for i in range(0, 6):
                     screen.blit(self.evTxtList[i], (470, self.statTxtYCoordsList[i]))
 
+                # PKMN DICT
+                if self.pkmn3 == None:
+                    screen.blit(self.pkmnDictBG, (600, 55))
+                    self.pkmnDictBox3 = DictBox((610, 105), (280, 530), self.pkmnSet, self.textInputPkmn3.getBuffer())
+                    self.pkmnDictBox3.draw(screen)
+
                 # IMGS TO DRAW ONLY IF SELF.PKMN3 IS FILLED
                 if self.pkmn3 != None:
+                    isActive = self.inputPkmn3Move1.isActive() or self.inputPkmn3Move2.isActive() or self.inputPkmn3Move3.isActive() or self.inputPkmn3Move4.isActive()
+                    # move dict
+                    if isActive:
+                        screen.blit(self.movesDictBG, (600, 55))
+                    validMoves = BattleSimulator.POKEMON_DICT[self.pkmn3Name.title()][11]
+                    self.moveSet = set(x.strip() for x in validMoves.split(","))
+
+                    # MOVE TEXT BOX ACTIVE DICT STUFF
+                    if self.inputPkmn3Move1.isActive():
+                        self.move1DictBox3 = MoveDictBox((610, 105), (280, 530), self.moveSet,
+                                                         self.inputPkmn3Move1.getBuffer(), self.pkmn3.getMoveNames())
+                        self.move1DictBox3.draw(screen)
+                    elif self.inputPkmn3Move2.isActive():
+                        self.move2DictBox3 = MoveDictBox((610, 105), (280, 530), self.moveSet,
+                                                         self.inputPkmn3Move2.getBuffer(), self.pkmn3.getMoveNames())
+                        self.move2DictBox3.draw(screen)
+                    elif self.inputPkmn3Move3.isActive():
+                        self.move3DictBox3 = MoveDictBox((610, 105), (280, 530), self.moveSet,
+                                                         self.inputPkmn3Move3.getBuffer(), self.pkmn3.getMoveNames())
+                        self.move3DictBox3.draw(screen)
+                    elif self.inputPkmn3Move4.isActive():
+                        self.move4DictBox3 = MoveDictBox((610, 105), (280, 530), self.moveSet,
+                                                         self.inputPkmn3Move4.getBuffer(), self.pkmn3.getMoveNames())
+                        self.move4DictBox3.draw(screen)
+
                     # SPRITE
                     if self.inputSprite3 != None:
                         self.inputSprite3.draw(screen)
@@ -2343,7 +2614,7 @@ class BattleSimulator(PygameGame):
                         screen.blit(mvPower, (269, 569))
                         screen.blit(mvAcc, (291, 587))
                 
-            elif self.selectPokemon4 == True:
+            elif self.selectPokemon4:
                 screen.blit(self.trprtSelectBG, (0, 0))
                 self.saveIcon.draw(screen)
                 screen.blit(self.selectedPkmnBG, (30, 80))
@@ -2383,8 +2654,39 @@ class BattleSimulator(PygameGame):
                 for i in range(0, 6):
                     screen.blit(self.evTxtList[i], (470, self.statTxtYCoordsList[i]))
 
+                # PKMN DICT
+                if self.pkmn4 == None:
+                    screen.blit(self.pkmnDictBG, (600, 55))
+                    self.pkmnDictBox4 = DictBox((610, 105), (280, 530), self.pkmnSet, self.textInputPkmn4.getBuffer())
+                    self.pkmnDictBox4.draw(screen)
+
                 # IMGS TO DRAW ONLY IF SELF.PKMN4 IS FILLED
                 if self.pkmn4 != None:
+                    isActive = self.inputPkmn4Move1.isActive() or self.inputPkmn4Move2.isActive() or self.inputPkmn4Move3.isActive() or self.inputPkmn4Move4.isActive()
+                    # move dict
+                    if isActive:
+                        screen.blit(self.movesDictBG, (600, 55))
+                    validMoves = BattleSimulator.POKEMON_DICT[self.pkmn4Name.title()][11]
+                    self.moveSet = set(x.strip() for x in validMoves.split(","))
+
+                    # MOVE TEXT BOX ACTIVE DICT STUFF
+                    if self.inputPkmn4Move1.isActive():
+                        self.move1DictBox4 = MoveDictBox((610, 105), (280, 530), self.moveSet,
+                                                         self.inputPkmn4Move1.getBuffer(), self.pkmn4.getMoveNames())
+                        self.move1DictBox4.draw(screen)
+                    elif self.inputPkmn4Move2.isActive():
+                        self.move2DictBox4 = MoveDictBox((610, 105), (280, 530), self.moveSet,
+                                                         self.inputPkmn4Move2.getBuffer(), self.pkmn4.getMoveNames())
+                        self.move2DictBox4.draw(screen)
+                    elif self.inputPkmn4Move3.isActive():
+                        self.move3DictBox4 = MoveDictBox((610, 105), (280, 530), self.moveSet,
+                                                         self.inputPkmn4Move3.getBuffer(), self.pkmn4.getMoveNames())
+                        self.move3DictBox4.draw(screen)
+                    elif self.inputPkmn4Move4.isActive():
+                        self.move4DictBox4 = MoveDictBox((610, 105), (280, 530), self.moveSet,
+                                                         self.inputPkmn4Move4.getBuffer(), self.pkmn4.getMoveNames())
+                        self.move4DictBox4.draw(screen)
+
                     # SPRITE
                     if self.inputSprite4 != None:
                         self.inputSprite4.draw(screen)
@@ -2444,7 +2746,7 @@ class BattleSimulator(PygameGame):
                         screen.blit(mvPower, (269, 569))
                         screen.blit(mvAcc, (291, 587))
                 
-            elif self.selectPokemon5 == True:
+            elif self.selectPokemon5:
                 screen.blit(self.trprtSelectBG, (0, 0))
                 self.saveIcon.draw(screen)
                 screen.blit(self.selectedPkmnBG, (30, 80))
@@ -2484,8 +2786,39 @@ class BattleSimulator(PygameGame):
                 for i in range(0, 6):
                     screen.blit(self.evTxtList[i], (470, self.statTxtYCoordsList[i]))
 
+                # PKMN DICT
+                if self.pkmn5 == None:
+                    screen.blit(self.pkmnDictBG, (600, 55))
+                    self.pkmnDictBox5 = DictBox((610, 105), (280, 530), self.pkmnSet, self.textInputPkmn5.getBuffer())
+                    self.pkmnDictBox5.draw(screen)
+
                 # IMGS TO DRAW ONLY IF SELF.PKMN5 IS FILLED
                 if self.pkmn5 != None:
+                    isActive = self.inputPkmn5Move1.isActive() or self.inputPkmn5Move2.isActive() or self.inputPkmn5Move3.isActive() or self.inputPkmn5Move4.isActive()
+                    # move dict
+                    if isActive:
+                        screen.blit(self.movesDictBG, (600, 55))
+                    validMoves = BattleSimulator.POKEMON_DICT[self.pkmn5Name.title()][11]
+                    self.moveSet = set(x.strip() for x in validMoves.split(","))
+
+                    # MOVE TEXT BOX ACTIVE DICT STUFF
+                    if self.inputPkmn5Move1.isActive():
+                        self.move1DictBox5 = MoveDictBox((610, 105), (280, 530), self.moveSet,
+                                                         self.inputPkmn5Move1.getBuffer(), self.pkmn5.getMoveNames())
+                        self.move1DictBox5.draw(screen)
+                    elif self.inputPkmn5Move2.isActive():
+                        self.move2DictBox5 = MoveDictBox((610, 105), (280, 530), self.moveSet,
+                                                         self.inputPkmn5Move2.getBuffer(), self.pkmn5.getMoveNames())
+                        self.move2DictBox5.draw(screen)
+                    elif self.inputPkmn5Move3.isActive():
+                        self.move3DictBox5 = MoveDictBox((610, 105), (280, 530), self.moveSet,
+                                                         self.inputPkmn5Move3.getBuffer(), self.pkmn5.getMoveNames())
+                        self.move3DictBox5.draw(screen)
+                    elif self.inputPkmn5Move4.isActive():
+                        self.move4DictBox5 = MoveDictBox((610, 105), (280, 530), self.moveSet,
+                                                         self.inputPkmn5Move4.getBuffer(), self.pkmn5.getMoveNames())
+                        self.move4DictBox5.draw(screen)
+
                     # SPRITE
                     if self.inputSprite5 != None:
                         self.inputSprite5.draw(screen)
@@ -2545,7 +2878,7 @@ class BattleSimulator(PygameGame):
                         screen.blit(mvPower, (269, 569))
                         screen.blit(mvAcc, (291, 587))
                 
-            elif self.selectPokemon6 == True:
+            elif self.selectPokemon6:
                 screen.blit(self.trprtSelectBG, (0, 0))
                 self.saveIcon.draw(screen)
                 screen.blit(self.selectedPkmnBG, (30, 80))
@@ -2585,8 +2918,39 @@ class BattleSimulator(PygameGame):
                 for i in range(0, 6):
                     screen.blit(self.evTxtList[i], (470, self.statTxtYCoordsList[i]))
 
+                # PKMN DICT
+                if self.pkmn6 == None:
+                    screen.blit(self.pkmnDictBG, (600, 55))
+                    self.pkmnDictBox6 = DictBox((610, 105), (280, 530), self.pkmnSet, self.textInputPkmn6.getBuffer())
+                    self.pkmnDictBox6.draw(screen)
+
                 # IMGS TO DRAW ONLY IF SELF.PKMN6 IS FILLED
                 if self.pkmn6 != None:
+                    isActive = self.inputPkmn6Move1.isActive() or self.inputPkmn6Move2.isActive() or self.inputPkmn6Move3.isActive() or self.inputPkmn6Move4.isActive()
+                    # move dict
+                    if isActive:
+                        screen.blit(self.movesDictBG, (600, 55))
+                    validMoves = BattleSimulator.POKEMON_DICT[self.pkmn6Name.title()][11]
+                    self.moveSet = set(x.strip() for x in validMoves.split(","))
+
+                    # MOVE TEXT BOX ACTIVE DICT STUFF
+                    if self.inputPkmn6Move1.isActive():
+                        self.move1DictBox6 = MoveDictBox((610, 105), (280, 530), self.moveSet,
+                                                         self.inputPkmn6Move1.getBuffer(), self.pkmn6.getMoveNames())
+                        self.move1DictBox6.draw(screen)
+                    elif self.inputPkmn6Move2.isActive():
+                        self.move2DictBox6 = MoveDictBox((610, 105), (280, 530), self.moveSet,
+                                                         self.inputPkmn6Move2.getBuffer(), self.pkmn6.getMoveNames())
+                        self.move2DictBox6.draw(screen)
+                    elif self.inputPkmn6Move3.isActive():
+                        self.move3DictBox6 = MoveDictBox((610, 105), (280, 530), self.moveSet,
+                                                         self.inputPkmn6Move3.getBuffer(), self.pkmn6.getMoveNames())
+                        self.move3DictBox6.draw(screen)
+                    elif self.inputPkmn6Move4.isActive():
+                        self.move4DictBox6 = MoveDictBox((610, 105), (280, 530), self.moveSet,
+                                                         self.inputPkmn6Move4.getBuffer(), self.pkmn6.getMoveNames())
+                        self.move4DictBox6.draw(screen)
+
                     # SPRITE
                     if self.inputSprite6 != None:
                         self.inputSprite6.draw(screen)
@@ -2696,7 +3060,6 @@ class BattleSimulator(PygameGame):
             cpuIcon = self.getTinyIcon(cpuName)
             screen.blit(cpuIcon, (640, 295))
 
-            # print(self.cpuActivePkmn)
             otherDetails = ActiveBox(self.playerActivePkmn, self.cpuActivePkmn, (630, 15))
             otherDetails.draw(screen)
 
@@ -2749,6 +3112,7 @@ class BattleSimulator(PygameGame):
         
         # call game-specific initialization
         self.init()
+        scrollY = 0 # for scrolling mechanisms
         playing = True
         while playing:
             time = clock.tick(self.fps)
@@ -2892,6 +3256,9 @@ class BattleSimulator(PygameGame):
             
             screen.fill(self.bgColor)
             self.redrawAll(screen)
+
+            # screen.blit(self.pkmnDictBox.getDictScreen(), (0, scrollY))
+
             pygame.display.update()
             pygame.display.flip()
         pygame.quit()

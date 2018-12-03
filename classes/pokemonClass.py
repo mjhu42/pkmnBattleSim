@@ -1,4 +1,5 @@
 import csv
+from classes.moveClass import *
 
 class Pokemon:
     def __init__(self, pkmn, lv, ev, moves, isFainted, statChanges, statusConditions,
@@ -82,7 +83,6 @@ class Pokemon:
         for stat in range(1, len(self.baseStats)): # atk, def, sp. atk, sp. def, spd
             base = int((((2 * self.baseStats[stat] + iv + \
                       self.ev[stat]/evDivisor) * self.level) / 100) + 5)
-            # print("STAT CHANGES:", self.statChanges)
             formula = int(base * self.stagesDict[self.statChanges[stat]])
             adjStats.append(formula)
         return adjStats
@@ -90,6 +90,15 @@ class Pokemon:
     # get pkmn moves
     def getMoves(self):
         return self.moves
+
+    def getMoveNames(self):
+        moveNames = set()
+        for move in self.moves:
+            if move != None:
+                moveNames.add(move.getMoveName())
+            else:
+                moveNames.add(None)
+        return moveNames
     
     # use a move
     def useMove(self, usedMove):

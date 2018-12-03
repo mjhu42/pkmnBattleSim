@@ -37,7 +37,6 @@ class Player:
 		
 		# otherwise, check if cpu is already inflicted with a status condition;
 		# if yes, no more status condition changes
-		print("CPU CURRENT STAT CHANGES:", cpuCurrentStatChanges)
 		for i in cpuCurrentStatChanges:
 			if i == True:
 				return statusChanges
@@ -121,7 +120,6 @@ class Player:
 							statusChanges[1][5] = statChange
 						elif sc == 6: # eva
 							statusChanges[1][6] = statChange
-		print("PLYR STATUS CHANGES:", statusChanges)
 		return statusChanges
 
 	def specialMoveStats(self, move):
@@ -129,7 +127,6 @@ class Player:
 			r = random.randint(1, 100)
 			if 10 <= r:
 				return [[1, 1, 1, 1, 1]]
-
 
 	def useMove(self, move):
 		# have the current pkmn use a move
@@ -190,7 +187,7 @@ class Player:
 					self.sleepCount += 1
 					msg = ("%s is asleep.") % (self.activePkmn)
 					print(msg)
-		elif isHit <= int(acc):
+		elif isHit <= int(acc) or acc == "":
 			hit = True
 
 		if hit:
@@ -204,13 +201,10 @@ class Player:
 				statusChange = statusCalculator(self.activePkmn, self.cpuActivePkmn, move)
 		elif not isPara or not isFrozen or not isSleep:
 			msg = "%s used %s! %s's attack missed!" % (self.activePkmn, move, self.activePkmn)
-			# statusChange = [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0],
-			# 				[False, False, False, False, False], [False, False, False, False, False]]
-		print("PLYR GAVE:", statusChange)
 		return [damageDealt, statusChange, msg]
 	
 class EasyOpponent(Player):
-	def __init__(self, activePkmn, party, cpuActivePkmn, pkmnDict, moveDict, cpuParty):
+	def __init__(self, activePkmn, party, cpuActivePkmn, cpuParty, pkmnDict, moveDict):
 		super().__init__(activePkmn, party, cpuActivePkmn, pkmnDict, moveDict)
 		self.cpuParty = cpuParty
 		self.sleepCount = 0
@@ -384,6 +378,7 @@ class EasyOpponent(Player):
 		return statusChanges
 
 	def useMove(self):
+		print("using easy move")
 		move = self.decideMove()
 		msg = "%s used %s!" % (self.cpuActivePkmn, move)
 		hit = False
@@ -461,6 +456,256 @@ class EasyOpponent(Player):
 				statusChange = switch1 + switch2
 		elif not isPara or not isFrozen or not isSleep:
 			msg = "%s used %s! %s's attack missed!" % (self.cpuActivePkmn, move, self.cpuActivePkmn)
-			# statusChange = [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0],
-			# 				[False, False, False, False, False], [False, False, False, False, False]]
+		return [damageDealt, statusChange, msg]
+
+class MediumOpponent(EasyOpponent):
+	def __init__(self, activePkmn, party, cpuActivePkmn, cpuParty, pkmnDict, moveDict):
+		super().__init__(activePkmn, party, cpuActivePkmn, cpuParty, pkmnDict, moveDict)
+		self.sleepCount = 0
+		# load type effectiveness dict
+		self.typeEffDict = {}
+		file = "classes/spreadsheets/typeEffectiveness.csv"
+		lst = open(file)
+		csvReader = csv.reader(lst, delimiter = ",")
+		for line in csvReader:
+			if line[0] not in self.typeEffDict:
+				self.typeEffDict[line[0]] = [[line[1], line[2]]]
+			else:
+				self.typeEffDict[line[0]] = self.typeEffDict[line[0]] + [[line[1], line[2]]]
+		lst.close()
+
+	def switchOut(self):
+		# checks if there's any super-effective pkmn in the party atm
+		oppPkmnTypes = self.activePkmn.getType()
+		bestPotentialPkmn = []
+		otherPotentialPkmn = []
+		lastResortPkmn = []
+		for pkmn in self.cpuParty:
+			if pkmn != None and pkmn.getIsFainted():
+				continue
+			elif pkmn != None:
+				if self.checkEffectivenessAgainstOpp(oppPkmnTypes, pkmn.getType()) >= 2:
+					bestPotentialPkmn.append(pkmn)
+				elif self.checkOppEffectiveness(oppPkmnTypes, pkmn.getType()) <= 1:
+					otherPotentialPkmn.append(pkmn)
+				else:
+					lastResortPkmn.append(pkmn)
+		if len(bestPotentialPkmn) != 0:
+			if len(bestPotentialPkmn) > 1:
+				randPkmn = random.randint(0, len(bestPotentialPkmn) - 1)
+				self.cpuActivePkmn = bestPotentialPkmn[randPkmn]
+				return self.cpuActivePkmn
+			else:
+				self.cpuActivePkmn = bestPotentialPkmn[0]
+				return self.cpuActivePkmn
+		elif len(otherPotentialPkmn) != 0:
+			if len(otherPotentialPkmn) > 1:
+				randPkmn = random.randint(0, len(bestPotentialPkmn) - 1)
+				self.cpuActivePkmn = otherPotentialPkmn[randPkmn]
+				return self.cpuActivePkmn
+			else:
+				self.cpuActivePkmn = otherPotentialPkmn[0]
+				return self.cpuActivePkmn
+		elif len(lastResortPkmn) != 0:
+			if len(lastResortPkmn) > 1:
+				randPkmn = random.randint(0, len(bestPotentialPkmn) - 1)
+				self.cpuActivePkmn = lastResortPkmn[randPkmn]
+				return self.cpuActivePkmn
+			else:
+				self.cpuActivePkmn = lastResortPkmn[0]
+				return self.cpuActivePkmn
+		else:
+			return 0
+
+	def switchOutInTurn(self, pkmn):
+		self.cpuActivePkmn = pkmn
+		return self.cpuActivePkmn
+
+	def checkEffectivenessAgainstOpp(self, oppPkmnTypes, cpuPkmnTypes):
+		effectiveness = 1
+		for pkmnType in cpuPkmnTypes:
+			checkEffectiveness = self.typeEffDict[pkmnType]
+			if len(oppPkmnTypes) == 1:
+				for oppType in checkEffectiveness:
+					if oppType[0] == oppPkmnTypes[0]:
+						effectiveness *= float(oppType[1])
+			elif len(oppPkmnTypes) == 2:
+				for oppType in checkEffectiveness:
+					if oppType[0] == oppPkmnTypes[0]:
+						effectiveness *= float(oppType[1])
+					elif oppType[0] == oppPkmnTypes[1]:
+						effectiveness *= float(oppType[1])
+		return effectiveness
+
+	def checkOppEffectiveness(self, oppPkmnTypes, cpuPkmnTypes):
+		effectiveness = 1
+		for pkmnType in oppPkmnTypes:
+			checkEffectiveness = self.typeEffDict[pkmnType]
+			if len(cpuPkmnTypes) == 1:
+				for cpuType in checkEffectiveness:
+					if cpuType[0] == cpuPkmnTypes[0]:
+						effectiveness *= float(cpuType[1])
+			elif len(cpuPkmnTypes) == 2:
+				for cpuType in checkEffectiveness:
+					if cpuType[0] == cpuPkmnTypes[0]:
+						effectiveness *= float(cpuType[1])
+					elif cpuType[0] == cpuPkmnTypes[1]:
+						effectiveness *= float(cpuType[1])
+		return effectiveness
+
+	def decideMove(self):
+		rlMoves = self.cpuActivePkmn.getMoves()
+		cpuPkmnTypes = self.cpuActivePkmn.getType()
+		oppPkmnTypes = self.activePkmn.getType()
+		# DELETE LATER BUT CHANGE ABOVE rlMOVES TO "moves"
+		moves = []
+		for i in rlMoves:
+			if i == None:
+				continue
+			else:
+				moves.append(i)
+		# check if cpu should switch out or not
+		effectiveness = self.checkOppEffectiveness(oppPkmnTypes, cpuPkmnTypes)
+		oppRemainingHP = self.activePkmn.getBattleStats()[0] - self.activePkmn.getStatChanges()[0]
+		oppRemainingHPDec = oppRemainingHP / (self.activePkmn.getBattleStats()[0])
+		if effectiveness >= 2:
+			bestSwitchOuts = []
+			otherSwitchOuts = []
+			for pkmn in self.cpuParty:
+				if pkmn != self.cpuActivePkmn and pkmn != None:
+					checkEff = self.checkOppEffectiveness(oppPkmnTypes, pkmn.getType())
+					if checkEff == 1:
+						otherSwitchOuts.append(pkmn)
+					elif checkEff <= 0.5:
+						bestSwitchOuts.append(pkmn)
+			if oppRemainingHPDec >= 0.3:
+				if bestSwitchOuts != []:
+					if len(bestSwitchOuts) == 1:
+						return ["switch", bestSwitchOuts[0]]
+					else:
+						randPkmn = random.randint(0, len(bestSwitchOuts) - 1)
+						return ["switch", bestSwitchOuts[randPkmn]]
+				elif otherSwitchOuts != []:
+					if len(otherSwitchOuts) == 1:
+						return ["switch", otherSwitchOuts[0]]
+					else:
+						randPkmn = random.randint(0, len(otherSwitchOuts) - 1)
+						return ["switch", otherSwitchOuts[randPkmn]]
+
+		# CHECK FOR SUPER EFFECTIVE MOVE
+		# try to find which of ur attacking moves are super-effective...
+		potentialMoves = []
+		for ty in moves:
+			if ty.getMoveCategory() == "Physical" or ty.getMoveCategory() == "Special":
+				mvType = ty.getMoveType()
+				if len(oppPkmnTypes) == 1:
+					for defType in self.typeEffDict[mvType]:
+						if defType[0] == oppPkmnTypes[0] and defType[1] == 2:
+							potentialMoves.append(ty)
+				elif len(oppPkmnTypes) == 2:
+					eff = 1
+					for defType in self.typeEffDict[mvType]:
+						if defType[0] == oppPkmnTypes[0]:
+							eff *= float(defType[1])
+						elif defType[0] == oppPkmnTypes[1]:
+							eff *= float(defType[1])
+					if eff >= 2:
+						potentialMoves.append(ty)
+		# ...if one move in the list of potential moves, just set move to that one...
+		if len(potentialMoves) == 1:
+			move = potentialMoves[0]
+		# ...otherwise, find the move with the greatest power...
+		elif len(potentialMoves) > 1:
+			currentPower = 0
+			currentMove = None
+			for m in potentialMoves:
+				if int(m.getMovePower()) > currentPower:
+					currentMove = m
+			move = currentMove
+		# ...if none, pick randomly and hope for the best! ¯\_(ツ)_/¯
+		elif len(potentialMoves) == 0:
+			moveNum = random.randint(0, len(moves) - 1)
+			move = moves[moveNum]
+		return move
+
+	def useMove(self):
+		move = self.decideMove()
+		if type(move) != Move and move[0] == "switch":
+			return move
+		msg = "%s used %s!" % (self.cpuActivePkmn, move)
+		hit = False
+		damageDealt = 0
+		statusChange = [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0],
+							[False, False, False, False, False], [False, False, False, False, False]]
+
+		# FIRST: check if the move hitss
+		acc = move.getMoveAccuracy()
+		statusConds = move.getMoveStatus()
+		statChanges = move.getMoveDStat()
+		isHit = random.randint(1, 100)
+
+		# CHECK STATUSES
+		isPara = self.cpuActivePkmn.getConditions()[1]
+		isParaCheck = random.randint(1, 100)
+		isFrozen = self.cpuActivePkmn.getConditions()[4]
+		isFrozenCheck = random.randint(1, 100)
+		isSleep = self.cpuActivePkmn.getConditions()[3]
+
+		# THEN:
+		if isPara and (isParaCheck <= 25): # if paralyzed, pkmn has a 25% chance of losing turn
+			print(isParaCheck)
+			hit = False
+			msg = ("%s is paralyzed! It can't move!") % (self.cpuActivePkmn)
+			print(msg)
+		elif isFrozen: # pkmn has a 20% chance of thawing out each turn
+			if (isFrozenCheck <= 20):
+				self.cpuActivePkmn.changeConditionsFalse(4)
+				msg = ("%s thawed out!") % (self.cpuActivePkmn)
+				hit = True
+				print(msg)
+			else:
+				hit = False
+				msg = ("%s is frozen! It can't move!") % (self.cpuActivePkmn)
+				print(msg)
+		elif isSleep: # sleeps for 1-3 turns
+			if self.sleepCount == 0:
+				hit = False
+				self.sleepCount += 1
+				msg = ("%s is asleep.") % (self.cpuActivePkmn)
+				print(msg)
+			elif self.sleepCount == 3:
+				hit = True
+				self.cpuActivePkmn.changeConditionsFalse(3)
+				self.sleepCount = 0
+				msg = ("%s woke up!") % (self.cpuActivePkmn)
+				print(msg)
+			else:
+				sleepCheck = random.randint(1, 100)
+				if 50 <= sleepCheck:
+					hit = True
+					self.cpuActivePkmn.changeConditionsFalse(3)
+					self.sleepCount = 0
+					msg = ("%s woke up!") % (self.cpuActivePkmn)
+					print(msg)
+				else:
+					hit = False
+					self.sleepCount += 1
+					msg = ("%s is asleep.") % (self.cpuActivePkmn)
+					print(msg)
+		elif isHit <= int(acc):
+			hit = True
+
+		# THEN:
+		if hit:
+			msg = "%s used %s!" % (self.cpuActivePkmn, move)
+			if move.getMoveCategory() == "Physical" or move.getMoveCategory() == "Special":
+				damageDealt = damageCalculator(self.cpuActivePkmn, self.activePkmn, move)
+				statusChange = self.moveStats(statChanges) + self.moveStatus(statusConds)
+			else:
+				statusChange = statusCalculator(self.cpuActivePkmn, self.activePkmn, move)
+				switch1 = [statusChange[1], statusChange[0]]
+				switch2 = [statusChange[3], statusChange[2]]
+				statusChange = switch1 + switch2
+		elif not isPara or not isFrozen or not isSleep:
+			msg = "%s used %s! %s's attack missed!" % (self.cpuActivePkmn, move, self.cpuActivePkmn)
 		return [damageDealt, statusChange, msg]

@@ -39,7 +39,10 @@ class TextBox:
                 raise KeyError("InputBox accepts no keyword {}.".format(kwarg))
         self.__dict__.update(defaults)
 
-    def change_ClearOnClear(self):
+    def getBuffer(self):
+        return self.buffer
+
+    def clearBox(self):
         self.buffer = []
 
     def isActive(self):

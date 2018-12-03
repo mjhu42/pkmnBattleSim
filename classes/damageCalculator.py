@@ -52,6 +52,10 @@ def damageCalculator(atkPkmn, defPkmn, move):
 		for match in typeEffDict[moveType]:
 			if match[0] == defPkmnType[1]:
 				superEff *= float(match[1])
+	if move.getMoveName() == "Freeze-Dry" and ("Water" in defPkmnType):
+		superEff = 2
+	elif move.getMoveName() == "Thousand Arrows" and ("Flying" in defPkmnType):
+		superEff = 1
 
 	# is burned?
 	burn = 1
@@ -67,7 +71,7 @@ def damageCalculator(atkPkmn, defPkmn, move):
 	if moveHiCrit == 1:
 		critProbability = 12
 	num = random.randint(1, 100)
-	if num <= critProbability:
+	if num <= critProbability or move.getMoveName() == "Frost Breath":
 		crit = 1.5
 
 	if moveCat == "Physical":
@@ -91,9 +95,7 @@ def statusCalculator(atkPkmn, defPkmn, move):
 	for status in range(0, len(statusConds)):
 		if statusConds[status] != "":
 			if statusConds[status].isdigit():
-				print(status)
 				defPkmn.changeConditions(status)
-				print(defPkmn.getConditions())
 			else:
 				atkPkmn.changeConditions(status)
 
