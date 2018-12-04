@@ -61,13 +61,23 @@ class BattleSimulator(PygameGame):
         movesList.close()
         # print(BattleSimulator.MOVES_DICT)
 
+        # TYPE EFFECTIVENESS DICT
+        self.typeEffDict = {}
+        file = "classes/spreadsheets/typeEffectiveness.csv"
+        lst = open(file)
+        csvReader = csv.reader(lst, delimiter = ",")
+        for line in csvReader:
+            if line[0] not in self.typeEffDict:
+                self.typeEffDict[line[0]] = [[line[1], line[2]]]
+            else:
+                self.typeEffDict[line[0]] = self.typeEffDict[line[0]] + [[line[1], line[2]]]
+        lst.close()
         
         ## TITLE SCREEN
         self.titleCard = True
 
         self.centerX = self.width / 2
         self.screen = pygame.display.set_mode((900, 650))
-        
         
         
         # IMAGES
@@ -127,7 +137,7 @@ class BattleSimulator(PygameGame):
         self.pkmn1Moves = [self.pkmn1Move1, self.pkmn1Move2, self.pkmn1Move3, self.pkmn1Move4]
         self.pkmn1BattleStats = [0, 0, 0, 0, 0, 0]
         self.pkmn1IsFainted = False
-        self.pkmn1StatChanges = [0, 0, 0, 0, 0, 0]
+        self.pkmn1StatChanges = [0, 0, 0, 0, 0, 0, 0, 0]
         self.pkmn1Conditions = [False, False, False, False, False]
 
         self.pkmn2 = None
@@ -143,7 +153,7 @@ class BattleSimulator(PygameGame):
         self.pkmn2Moves = [self.pkmn2Move1, self.pkmn2Move2, self.pkmn2Move3, self.pkmn2Move4]
         self.pkmn2BattleStats = [0, 0, 0, 0, 0, 0]
         self.pkmn2IsFainted = False
-        self.pkmn2StatChanges = [0, 0, 0, 0, 0, 0]
+        self.pkmn2StatChanges = [0, 0, 0, 0, 0, 0, 0, 0]
         self.pkmn2Conditions = [False, False, False, False, False]
 
         self.pkmn3 = None
@@ -159,7 +169,7 @@ class BattleSimulator(PygameGame):
         self.pkmn3Moves = [self.pkmn3Move1, self.pkmn3Move2, self.pkmn3Move3, self.pkmn3Move4]
         self.pkmn3BattleStats = [0, 0, 0, 0, 0, 0]
         self.pkmn3IsFainted = False
-        self.pkmn3StatChanges = [0, 0, 0, 0, 0, 0]
+        self.pkmn3StatChanges = [0, 0, 0, 0, 0, 0, 0, 0]
         self.pkmn3Conditions = [False, False, False, False, False]
 
         self.pkmn4 = None
@@ -175,7 +185,7 @@ class BattleSimulator(PygameGame):
         self.pkmn4Moves = [self.pkmn4Move1, self.pkmn4Move2, self.pkmn4Move3, self.pkmn4Move4]
         self.pkmn4BattleStats = [0, 0, 0, 0, 0, 0]
         self.pkmn4IsFainted = False
-        self.pkmn4StatChanges = [0, 0, 0, 0, 0, 0]
+        self.pkmn4StatChanges = [0, 0, 0, 0, 0, 0, 0, 0]
         self.pkmn4Conditions = [False, False, False, False, False]
 
         self.pkmn5 = None
@@ -191,7 +201,7 @@ class BattleSimulator(PygameGame):
         self.pkmn5Moves = [self.pkmn5Move1, self.pkmn5Move2, self.pkmn5Move3, self.pkmn5Move4]
         self.pkmn5BattleStats = [0, 0, 0, 0, 0, 0]
         self.pkmn5IsFainted = False
-        self.pkmn5StatChanges = [0, 0, 0, 0, 0, 0]
+        self.pkmn5StatChanges = [0, 0, 0, 0, 0, 0, 0, 0]
         self.pkmn5Conditions = [False, False, False, False, False]
 
         self.pkmn6 = None
@@ -207,55 +217,57 @@ class BattleSimulator(PygameGame):
         self.pkmn6Moves = [self.pkmn6Move1, self.pkmn6Move2, self.pkmn6Move3, self.pkmn6Move4]
         self.pkmn6BattleStats = [0, 0, 0, 0, 0, 0]
         self.pkmn6IsFainted = False
-        self.pkmn6StatChanges = [0, 0, 0, 0, 0, 0]
+        self.pkmn6StatChanges = [0, 0, 0, 0, 0, 0, 0, 0]
         self.pkmn6Conditions = [False, False, False, False, False]
 
         self.pkmnTypes = [[self.pkmn1Type1, self.pkmn1Type2], [self.pkmn2Type1, self.pkmn2Type2],
                           [self.pkmn3Type1, self.pkmn3Type2], [self.pkmn4Type1, self.pkmn4Type2],
                           [self.pkmn5Type1, self.pkmn5Type2], [self.pkmn6Type1, self.pkmn6Type2]]
 
-        self.cpuPkmn1 = Pokemon("Charizard", 100, [4, 0, 0, 252, 0, 252], [Move("Flamethrower", 'Fire', 'Special', '90', '100', '24', '', [['', '', '', '', ''], ['', '', '', '', '', '', ''], ['', '', '', '', '', '']]), Move("Wing Attack", 'Flying', 'Physical', '60', '100', '56', '', [['', '', '', '', ''], ['', '', '', '', '', '', ''], ['', '', '', '', '', '']]), Move("Slash", 'Normal', 'Physical', '70', '100', '32', '', [['', '', '', '', ''], ['', '', '', '', '', '', ''], ['1', '', '', '', '', '']]), None], False, [0, 0, 0, 0, 0, 0, 0, 0], [False, False, False, False, False], True)
-        # self.cpuPkmn1 = None
+        # self.cpuPkmn1 = Pokemon("Charizard", 100, [4, 0, 0, 252, 0, 252], [Move("Flamethrower", 'Fire', 'Special', '90', '100', '24', '', [['', '', '', '', ''], ['', '', '', '', '', '', ''], ['', '', '', '', '', '']]), Move("Wing Attack", 'Flying', 'Physical', '60', '100', '56', '', [['', '', '', '', ''], ['', '', '', '', '', '', ''], ['', '', '', '', '', '']]), Move("Slash", 'Normal', 'Physical', '70', '100', '32', '', [['', '', '', '', ''], ['', '', '', '', '', '', ''], ['1', '', '', '', '', '']]), None], False, [0, 0, 0, 0, 0, 0, 0, 0], [False, False, False, False, False], True)
+        self.cpuPkmn1 = None
         self.cpuPkmn1BattleStats = [0, 0, 0, 0, 0, 0]
         self.cpuPkmn1IsFainted = False
-        self.cpuPkmn1StatChanges = [0, 0, 0, 0, 0, 0]
+        self.cpuPkmn1StatChanges = [0, 0, 0, 0, 0, 0, 0, 0]
         self.cpuPkmn1Conditions = [False, False, False, False, False, False]
 
-        self.cpuPkmn2 = Pokemon("Blastoise", 100, [4, 0, 0, 252, 0, 252], [Move("Surf", 'Water', 'Special', '65', '100', '32', '', [['', '', '', '', ''], ['', '', '', '', '', '', ''], ['', '', '', '', '', '']]), Move("Blizzard", 'Ice', 'Special', '110', '70', '8', '', [['', '', '', '', '10'], ['', '', '', '', '', '', ''], ['', '', '', '', '', '']]), Move("Ice Beam", 'Ice', 'Special', '90', '100', '16', '', [['', '', '', '', '10'], ['', '', '', '', '', '', ''], ['', '', '', '', '', '']]), None], False, [0, 0, 0, 0, 0, 0, 0, 0], [False, False, False, False, False])
+        # self.cpuPkmn2 = Pokemon("Blastoise", 100, [4, 0, 0, 252, 0, 252], [Move("Surf", 'Water', 'Special', '65', '100', '32', '', [['', '', '', '', ''], ['', '', '', '', '', '', ''], ['', '', '', '', '', '']]), Move("Blizzard", 'Ice', 'Special', '110', '70', '8', '', [['', '', '', '', '10'], ['', '', '', '', '', '', ''], ['', '', '', '', '', '']]), Move("Ice Beam", 'Ice', 'Special', '90', '100', '16', '', [['', '', '', '', '10'], ['', '', '', '', '', '', ''], ['', '', '', '', '', '']]), Move("Defense Curl", 'Normal', 'Status', '', '', '64', '', [['', '', '', '', ''], ['', 'u, 1', '', '', '', '', ''], ['', '', '', '', '', '']])], False, [0, 0, 0, 0, 0, 0, 0, 0], [False, False, False, False, False])
+        self.cpuPkmn2 = None
         self.cpuPkmn2BattleStats = [0, 0, 0, 0, 0, 0]
         self.cpuPkmn2IsFainted = False
         self.cpuPkmn2StatChanges = [0, 0, 0, 0, 0, 0]
         self.cpuPkmn2Conditions = [False, False, False, False, False, False]
 
-        self.cpuPkmn3 = Pokemon("Venusaur", 100, [0, 0, 4, 252, 252, 0], [Move("Petal Dance", 'Grass', 'Special', '120', '100', '16', '', [['', '', '', '', ''], ['', '', '', '', '', '', ''], ['', '', '10', '', '', '']]), Move("Double-Edge", 'Normal', 'Physical', '120', '100', '24', '', [['', '', '', '', ''], ['', '', '', '', '', '', ''], ['', '', '25', '', '', '']]), None, None], False, [0, 0, 0, 0, 0, 0, 0, 0], [False, False, False, False, False])
+        # self.cpuPkmn3 = Pokemon("Venusaur", 100, [0, 0, 4, 252, 252, 0], [Move("Petal Dance", 'Grass', 'Special', '120', '100', '16', '', [['', '', '', '', ''], ['', '', '', '', '', '', ''], ['', '', '10', '', '', '']]), Move("Double-Edge", 'Normal', 'Physical', '120', '100', '24', '', [['', '', '', '', ''], ['', '', '', '', '', '', ''], ['', '', '25', '', '', '']]), None, None], False, [0, 0, 0, 0, 0, 0, 0, 0], [False, False, False, False, False])
+        self.cpuPkmn3 = None
         self.cpuPkmn3BattleStats = [0, 0, 0, 0, 0, 0]
         self.cpuPkmn3IsFainted = False
-        self.cpuPkmn3StatChanges = [0, 0, 0, 0, 0, 0]
+        self.cpuPkmn3StatChanges = [0, 0, 0, 0, 0, 0, 0, 0]
         self.cpuPkmn3Conditions = [False, False, False, False, False, False]
 
-        self.cpuPkmn4 = Pokemon("Zapdos", 100, [0, 0, 4, 252, 252, 0], [Move("Thunderbolt", 'Electric', 'Special', '90', '100', '24', '', [['', '', '10', '', ''], ['', '', '', '', '', '', ''], ['', '', '', '', '', '']]), Move("Wing Attack", 'Flying', 'Physical', '60', '100', '56', '', [['', '', '', '', ''], ['', '', '', '', '', '', ''], ['', '', '', '', '', '']]), None, None], False, [0, 0, 0, 0, 0, 0, 0, 0], [False, False, False, False, False])
+        # self.cpuPkmn4 = Pokemon("Zapdos", 100, [0, 0, 4, 252, 252, 0], [Move("Thunderbolt", 'Electric', 'Special', '90', '100', '24', '', [['', '', '10', '', ''], ['', '', '', '', '', '', ''], ['', '', '', '', '', '']]), Move("Wing Attack", 'Flying', 'Physical', '60', '100', '56', '', [['', '', '', '', ''], ['', '', '', '', '', '', ''], ['', '', '', '', '', '']]), None, None], False, [0, 0, 0, 0, 0, 0, 0, 0], [False, False, False, False, False])
+        self.cpuPkmn4 = None
         self.cpuPkmn4BattleStats = [0, 0, 0, 0, 0, 0]
         self.cpuPkmn4IsFainted = False
-        self.cpuPkmn4StatChanges = [0, 0, 0, 0, 0, 0]
+        self.cpuPkmn4StatChanges = [0, 0, 0, 0, 0, 0, 0, 0]
         self.cpuPkmn4Conditions = [False, False, False, False, False, False]
 
         self.cpuPkmn5 = None
         self.cpuPkmn5BattleStats = [0, 0, 0, 0, 0, 0]
         self.cpuPkmn5IsFainted = False
-        self.cpuPkmn5StatChanges = [0, 0, 0, 0, 0, 0]
+        self.cpuPkmn5StatChanges = [0, 0, 0, 0, 0, 0, 0, 0]
         self.cpuPkmn5Conditions = [False, False, False, False, False, False]
 
         self.cpuPkmn6 = None
         self.cpuPkmn6BattleStats = [0, 0, 0, 0, 0, 0]
         self.cpuPkmn6IsFainted = False
-        self.cpuPkmn6StatChanges = [0, 0, 0, 0, 0, 0]
+        self.cpuPkmn6StatChanges = [0, 0, 0, 0, 0, 0, 0, 0]
         self.cpuPkmn6Conditions = [False, False, False, False, False, False]
 
         self.cpuParty = [self.cpuPkmn1, self.cpuPkmn2, self.cpuPkmn3, self.cpuPkmn4, self.cpuPkmn5, self.cpuPkmn6]
-        self.cpuActivePkmn = self.cpuPkmn2
+        self.cpuActivePkmn = self.cpuPkmn1
         self.cpuActiveSprite = None
         self.cpuCrrActive = None
-
 
         self.playerActivePkmn = None
         self.plyrCrrActive = None
@@ -692,6 +704,18 @@ class BattleSimulator(PygameGame):
                 if self.party[j] != None:
                     self.party[j].activeFalse()
 
+    ################################
+    ## INITIALIZE CPU ACTIVE PKMN ##
+    ################################
+    def initializeCPUActive(self):
+        self.cpuParty = self.selectCPUTeam(self.party)
+        self.cpuActivePkmn = self.cpuParty[0]
+        if self.playEasy:
+            self.cpuEasy = EasyOpponent(self.playerActivePkmn, self.party, self.cpuActivePkmn, self.cpuParty, BattleSimulator.POKEMON_DICT, BattleSimulator.MOVES_DICT)
+        elif self.playMedium:
+            self.cpuMed = MediumOpponent(self.playerActivePkmn, self.party, self.cpuActivePkmn, self.cpuParty, BattleSimulator.POKEMON_DICT,
+                BattleSimulator.MOVES_DICT)
+
         # FOLDERS AND FRAMES
         activeName = self.cpuActivePkmn.getName()
         properName = str(activeName).title()
@@ -940,6 +964,7 @@ class BattleSimulator(PygameGame):
         for i in self.party:
             if i != None:
                 self.partySize += 1
+        print(self.partySize)
 
     ###############
     ## GET LEVEL ##
@@ -1277,6 +1302,223 @@ class BattleSimulator(PygameGame):
                     break
             self.pkmn6BattleStats = self.pkmn6.getBattleStats()
 
+    #####################
+    ## SELECT CPU TEAM ##
+    #####################
+    def selectCPUTeam(self, plyrTeam):
+        # first, count how many pkmn are on the player's team
+        plyrTeamCount = 0
+        for pkmn in plyrTeam:
+            if pkmn != None:
+                plyrTeamCount += 1
+
+        if self.playEasy:
+            potentialPkmn = []
+            for plyrPkmn in self.party:
+                if plyrPkmn != None:
+                    levelGap = random.randint(2, 5)
+                    levelCap = int(plyrPkmn.getLevel()) - levelGap
+                    if levelCap < 1:
+                        levelCap = 1
+                    totalBaseStats = int(BattleSimulator.POKEMON_DICT[plyrPkmn.getName()][8])
+                    for pkmn in BattleSimulator.POKEMON_DICT:
+                        onPkmn = BattleSimulator.POKEMON_DICT[pkmn]
+                        if int(onPkmn[8]) >= totalBaseStats - 50 and int(onPkmn[8]) <= totalBaseStats and \
+                           pkmn not in potentialPkmn and onPkmn[11] != "": # limit to pkmn that are of lower base stats
+                            potentialPkmn.append(Pokemon(pkmn, levelCap, [0, 0, 0, 0, 0, 0], [None, None, None, None],
+                                     False, [0, 0, 0, 0, 0, 0, 0, 0], [False, False, False, False, False]))
+            for count in range(0, plyrTeamCount):
+                randomPkmn = random.randint(0, len(potentialPkmn) - 1)
+                currentPkmn = potentialPkmn.pop(randomPkmn)
+
+                # INITIALIZE NEED-TO-KNOW INFO
+                pkmnTypes = currentPkmn.getType()
+                print(currentPkmn)
+                currentMoves = BattleSimulator.POKEMON_DICT[currentPkmn.getName()][11]
+                currentMoves = [x.strip() for x in currentMoves.split(",")]
+                # CLEAN OUT
+                validMoves = []
+                for mv in currentMoves:
+                    if mv in BattleSimulator.MOVES_DICT:
+                        validMoves.append(mv)
+
+                potentialAttackMoves = []
+                for moveName in validMoves:
+                    moveInfo = BattleSimulator.MOVES_DICT[moveName]
+                    if moveInfo[1] != "Status":
+                        potentialAttackMoves.append(Move(moveName, moveInfo[0], moveInfo[1], moveInfo[2], moveInfo[3], moveInfo[4],
+                                       moveInfo[5], moveInfo[6]))
+                for move in range(0, 4):
+                    randomMove = random.randint(0, len(potentialAttackMoves) - 1)
+                    currentPkmn.changeMoves(move, potentialAttackMoves.pop(randomMove))
+                evsLeft = 508
+                for evIndex in range(0, 6):
+                    randomEV = random.randint(0, 252)
+                    if evsLeft == 0:
+                        for i in range(evIndex, 6):
+                            currentPkmn.changeEVs(i, 0)
+                    elif evsLeft - randomEV >= 0:
+                        currentPkmn.changeEVs(evIndex, randomEV)
+                    else:
+                        randomEV = evsLeft
+                        currentPkmn.changeEVs(evIndex, randomEV)
+                    evsLeft -= randomEV
+                self.cpuParty[count] = currentPkmn
+            return self.cpuParty
+
+        elif self.playMedium:
+            potentialPkmn = []
+            plyrPartyType = []
+            for plyrPkmn in self.party:
+                if plyrPkmn != None:
+                    plyrPartyType.append(plyrPkmn.getType())
+                    levelGap = random.randint(0, 5) # pkmn will be 0 to 5 levels above
+                    levelCap = int(plyrPkmn.getLevel()) + levelGap
+                    if levelCap > 100:
+                        levelCap = 100
+                    baseStatsLimit = 410 # all pkmn chosen will have at least 410 in overall stats, no matter what the player chooses
+                    for pkmn in BattleSimulator.POKEMON_DICT:
+                        onPkmn = BattleSimulator.POKEMON_DICT[pkmn]
+                        if int(onPkmn[8]) >= baseStatsLimit and pkmn not in potentialPkmn and onPkmn[11] != "":
+                            potentialPkmn.append(Pokemon(pkmn, levelCap, [0, 0, 0, 0, 0, 0], [None, None, None, None],
+                                     False, [0, 0, 0, 0, 0, 0, 0], [False, False, False, False, False]))
+            for count in range(0, plyrTeamCount):
+                # every other pkmn here will be super effective against a pkmn on the player's team
+                if count % 2 == 1:
+                    randomPkmn = random.randint(0, len(potentialPkmn) - 1)
+                    currentPkmn = potentialPkmn.pop(randomPkmn)
+                elif count % 2 == 0:
+                    sprEffPotentialPkmn = []
+                    superEff = 1
+                    for moveType in self.typeEffDict: # check which types are super effective against the pkmn...
+                        for match in self.typeEffDict[moveType]:
+                            if match[0] == plyrPartyType[count][0]:
+                                superEff *= float(match[1])
+                        if len(plyrPartyType[count]) == 2:
+                            for match in self.typeEffDict[moveType]:
+                                if match[0] == plyrPartyType[count][1]:
+                                    superEff *= float(match[1])
+                        if superEff >= 2:
+                            for pkmn in potentialPkmn:
+                                if moveType in pkmn.getType() and pkmn not in sprEffPotentialPkmn:
+                                    sprEffPotentialPkmn.append(pkmn)
+                        superEff = 1
+                    randomSprEffPkmn = random.randint(0, len(sprEffPotentialPkmn) - 1)
+                    currentPkmn = sprEffPotentialPkmn.pop(randomSprEffPkmn)
+                    potentialPkmn.remove(currentPkmn)
+                    
+                # INITIALIZE NEED-TO-KNOW INFO
+                pkmnTypes = currentPkmn.getType()
+                currentMoves = BattleSimulator.POKEMON_DICT[currentPkmn.getName()][11]
+                currentMoves = [x.strip() for x in currentMoves.split(",")]
+                # CLEAN OUT
+                validMoves = []
+                for mv in currentMoves:
+                    if mv in BattleSimulator.MOVES_DICT:
+                        validMoves.append(mv)
+                # SORT INTO STATUS/ATTACKING MOVES
+                potentialStatusMoves = []
+                physicalMoves = []
+                specialMoves = []
+                superEffTypes = []
+                # determine which types are super effective against opponent
+                for moveType in self.typeEffDict:
+                    superEff = 1
+                    for match in self.typeEffDict[moveType]:
+                        if match[0] == plyrPartyType[count][0]:
+                            superEff *= float(match[1])
+                    if len(plyrPartyType[count]) == 2:
+                        for match in self.typeEffDict[moveType]:
+                            if match[0] == plyrPartyType[count][1]:
+                                superEff *= float(match[1])
+                    if superEff >= 2:
+                        superEffTypes.append(moveType)
+                # fill potential moves lists
+                for moveName in validMoves:
+                    moveInfo = BattleSimulator.MOVES_DICT[moveName]
+                    if moveInfo[1] == "Status":
+                        potentialStatusMoves.append(Move(moveName, moveInfo[0], moveInfo[1], moveInfo[2], moveInfo[3], moveInfo[4],
+                                       moveInfo[5], moveInfo[6]))
+                    else:
+                        movesWithSTAB = moveInfo[0] in currentPkmn.getType()
+                        superEffMoves = moveInfo[0] in superEffTypes
+                        bestMove = movesWithSTAB or superEffMoves
+                        definedMoves = moveInfo[2] != "*" and moveInfo[2] != ""
+                        if definedMoves and int(moveInfo[2]) >= 60 and bestMove: # all attacking moves have a power of at least 60
+                            if moveInfo[1] == "Physical":
+                                physicalMoves.append(Move(moveName, moveInfo[0], moveInfo[1], moveInfo[2], moveInfo[3], moveInfo[4],
+                                       moveInfo[5], moveInfo[6]))
+                            else:
+                                specialMoves.append(Move(moveName, moveInfo[0], moveInfo[1], moveInfo[2], moveInfo[3], moveInfo[4],
+                                       moveInfo[5], moveInfo[6]))
+                
+                # DETERMINE WHICH MOVES SHOULD BE USED
+                randomStatusMove = random.randint(0, len(potentialStatusMoves) - 1)
+                currentPkmn.changeMoves(0, potentialStatusMoves.pop(randomStatusMove))
+                type1Count = 0
+                type2Count = 0
+                for move in range(1, 4):
+                    if currentPkmn.getBaseStats()[1] > currentPkmn.getBaseStats()[3]: # if atk > spatk
+                        randomMove = random.randint(0, len(physicalMoves) - 1)
+                        currentPkmn.changeMoves(move, physicalMoves.pop(randomMove))
+                    elif currentPkmn.getBaseStats()[1] < currentPkmn.getBaseStats()[3]: # if spatk > atk
+                        randomMove = random.randint(0, len(specialMoves) - 1)
+                        currentPkmn.changeMoves(move, specialMoves.pop(randomMove))
+                    else: # if atk = spatk
+                        randomCategory = random.randint(0, 1)
+                        if randomCategory == 0:
+                            randomMove = random.randint(0, len(physicalMoves) - 1)
+                            currentPkmn.changeMoves(move, physicalMoves.pop(randomMove))
+                        else:
+                            randomMove = random.randint(0, len(specialMoves) - 1)
+                            currentPkmn.changeMoves(move, specialMoves.pop(randomMove))
+                print(currentPkmn.getMoves())
+                for evIndex in range(0, 6):
+                    if currentPkmn.getBaseStats()[1] > currentPkmn.getBaseStats()[3]: # if atk > spatk
+                        currentPkmn.changeEVs(1, 252) # give atk 252
+                        currentPkmn.changeEVs(5, 52) # give speed 52
+                        currentPkmn.changeEVs(0, 4) # give HP 4
+                        if currentPkmn.getBaseStats()[2] > currentPkmn.getBaseStats()[4]: # if def > spdef
+                            randomDefEV = random.randint(65, 200)
+                            spDefEV = 200 - randomDefEV
+                            currentPkmn.changeEVs(2, randomDefEV)
+                            currentPkmn.changeEVs(4, spDefEV)
+                        else:
+                            randomSpDefEV = random.randint(65, 200)
+                            defEV = 200 - randomSpDefEV
+                            currentPkmn.changeEVs(4, randomSpDefEV)
+                            currentPkmn.changeEVs(2, defEV)
+                    elif currentPkmn.getBaseStats()[1] < currentPkmn.getBaseStats()[3]: # if spatk > atk
+                        currentPkmn.changeEVs(3, 252) # give atk 252
+                        currentPkmn.changeEVs(5, 52) # give speed 52
+                        currentPkmn.changeEVs(0, 4) # give HP 4
+                        if currentPkmn.getBaseStats()[2] > currentPkmn.getBaseStats()[4]: # if def > spdef
+                            randomDefEV = random.randint(65, 200)
+                            spDefEV = 200 - randomDefEV
+                            currentPkmn.changeEVs(2, randomDefEV)
+                            currentPkmn.changeEVs(4, spDefEV)
+                        else:
+                            randomSpDefEV = random.randint(65, 200)
+                            defEV = 200 - randomSpDefEV
+                            currentPkmn.changeEVs(4, randomSpDefEV)
+                            currentPkmn.changeEVs(2, defEV)
+                    else:
+                        currentPkmn.changeEVs(1, 200)
+                        currentPkmn.changeEVs(3, 200)
+                        currentPkmn.changeEVs(0, 8)
+                        if currentPkmn.getBaseStats()[2] > currentPkmn.getBaseStats()[4]: # if def > spdef
+                            randomDefEV = random.randint(50, 100)
+                            spDefEV = 100 - randomDefEV
+                            currentPkmn.changeEVs(2, randomDefEV)
+                            currentPkmn.changeEVs(4, spDefEV)
+                        else:
+                            randomSpDefEV = random.randint(50, 100)
+                            defEV = 100 - randomSpDefEV
+                            currentPkmn.changeEVs(4, randomSpDefEV)
+                            currentPkmn.changeEVs(2, defEV)
+                self.cpuParty[count] = currentPkmn
+            return self.cpuParty
+
     ########################
     ## UPDATE ACTIVE PKMN ##
     ########################
@@ -1342,22 +1584,14 @@ class BattleSimulator(PygameGame):
             if effects[3][cpuChange] != False:
                 self.cpuActivePkmn.changeConditions(cpuChange)
 
-    #####################
-    ## CPU SWITCH TURN ##
-    #####################
-    def cpuSwitchTurn(self):
-        self.cpuUsedMove = self.cpuMed.useMove()
-
     ##########
     ## TURN ##
     ##########
     def turn(self):
         if self.playEasy: # initialize cpu move
-            print("playing EasyOpponent")
             self.cpuUsedMove = self.cpuEasy.useMove()
-        elif self.playMedium:
-            print("playing MediumOpponent")
-            # self.cpuUsedMove = self.cpuMed.useMove()
+        # elif self.playMedium:
+        #     self.cpuUsedMove = self.cpuMed.useMove()
         plyrSpeed = self.playerActivePkmn.getBattleStats()[5] # player speed
         cpuSpeed = self.cpuActivePkmn.getBattleStats()[5] # cpu speed
 
@@ -1540,7 +1774,12 @@ class BattleSimulator(PygameGame):
                 self.cpuActivePkmn.changeHP(damageDealt)
                 msg = ("%s was hurt by poison!") % (self.cpuActivePkmn)
                 print(msg)
-        if len(self.playerFainted) == self.partySize:
+        checkAllFainted = []
+        for pkmn in self.party:
+            if pkmn != None:
+                checkAllFainted.append(pkmn.getIsFainted())
+        # if len(self.playerFainted) == self.partySize:
+        if all(checkAllFainted):
             self.gameOver = True
             self.cpuWon = True
             self.battleScreen = False
@@ -1568,6 +1807,8 @@ class BattleSimulator(PygameGame):
     ## RESET ALL ##
     ###############
     def clearAll(self):
+        self.playEasy = False
+        self.playMedium = False
         # 1
         self.pkmn1 = None
         self.pkmn1Type1 = None
@@ -1579,6 +1820,8 @@ class BattleSimulator(PygameGame):
         self.pkmn1Move4 = None
         self.pkmn1Moves = [None, None, None, None]
         self.pkmn1ev = [0, 0, 0, 0, 0, 0]
+        self.pkmn1IsFainted = False
+        self.pkmn1StatChanges = [0, 0, 0, 0, 0, 0, 0, 0]
 
         # text input
         for txt in self.input1List:
@@ -1599,6 +1842,8 @@ class BattleSimulator(PygameGame):
         self.pkmn2Move3 = None
         self.pkmn2Move4 = None
         self.pkmn2ev = [0, 0, 0, 0, 0, 0]
+        self.pkmn2IsFainted = False
+        self.pkmn2StatChanges = [0, 0, 0, 0, 0, 0, 0, 0]
 
         # text input
         for txt in self.input2List:
@@ -1619,6 +1864,8 @@ class BattleSimulator(PygameGame):
         self.pkmn3Move4 = None
         self.pkmn3Moves = [None, None, None, None]
         self.pkmn3ev = [0, 0, 0, 0, 0, 0]
+        self.pkmn3IsFainted = False
+        self.pkmn3StatChanges = [0, 0, 0, 0, 0, 0, 0, 0]
 
         # text input
         for txt in self.input3List:
@@ -1639,6 +1886,8 @@ class BattleSimulator(PygameGame):
         self.pkmn4Move4 = None
         self.pkmn4Moves = [None, None, None, None]
         self.pkmn4ev = [0, 0, 0, 0, 0, 0]
+        self.pkmn4IsFainted = False
+        self.pkmn4StatChanges = [0, 0, 0, 0, 0, 0, 0, 0]
 
         # text input
         for txt in self.input4List:
@@ -1659,6 +1908,8 @@ class BattleSimulator(PygameGame):
         self.pkmn5Move4 = None
         self.pkmn5Moves = [None, None, None, None]
         self.pkmn5ev = [0, 0, 0, 0, 0, 0]
+        self.pkmn5IsFainted = False
+        self.pkmn5StatChanges = [0, 0, 0, 0, 0, 0, 0, 0]
 
         # text input
         for txt in self.input5List:
@@ -1679,6 +1930,8 @@ class BattleSimulator(PygameGame):
         self.pkmn6Move4 = None
         self.pkmn6Moves = [None, None, None, None]
         self.pkmn6ev = [0, 0, 0, 0, 0, 0]
+        self.pkmn6IsFainted = False
+        self.pkmn6StatChanges = [0, 0, 0, 0, 0, 0, 0, 0]
 
         # text input
         for txt in self.input6List:
@@ -1688,6 +1941,7 @@ class BattleSimulator(PygameGame):
 
         # select screen box
         self.selectBox6 = Box(self.pkmn6, self.pkmn6Type1, self.pkmn6Type2, (610, 544), (280, 92))
+        
 
     ###################
     ## MOUSE PRESSED ##
@@ -1721,9 +1975,7 @@ class BattleSimulator(PygameGame):
                 self.playEasy = True
                 self.playMedium = False
             elif med and notSelecting:
-                print("here! 2")
                 self.cpuMed = MediumOpponent(self.playerActivePkmn, self.party, self.cpuActivePkmn, self.cpuParty, BattleSimulator.POKEMON_DICT, BattleSimulator.MOVES_DICT)
-                print(self.playerActivePkmn)
                 self.playMedium = True
                 self.playEasy = False
             
@@ -1734,6 +1986,8 @@ class BattleSimulator(PygameGame):
                 if self.party == [None, None, None, None, None, None]:
                     print("Please add at least one Pokémon to your party.")
                 else:
+                    self.initializeCPUActive()
+                    self.player = Player(self.playerActivePkmn, self.party, self.cpuActivePkmn, BattleSimulator.POKEMON_DICT, BattleSimulator.MOVES_DICT)
                     self.selectScreen = False
                     self.battleScreen = True
                     self.chooseAction = True

@@ -102,7 +102,7 @@ class Player:
 						statusChanges[1][5] = statChange
 					elif sc == 6: # eva
 						statusChanges[1][6] = statChange
-				elif len(statChanges[sc] == 3):
+				elif len(statChanges[sc]) == 2:
 					inflictStatus = random.randint(1, 100)
 					if int(statChanges[sc][2]) <= inflictStatus:
 						statChange = int(statChanges[sc][1])
@@ -193,6 +193,7 @@ class Player:
 		if hit:
 			msg = "%s used %s!" % (self.activePkmn, move)
 			if move.getMoveCategory() == "Physical" or move.getMoveCategory() == "Special":
+				print(self.cpuActivePkmn)
 				damageDealt = damageCalculator(self.activePkmn, self.cpuActivePkmn, move)
 				statChanges = self.moveStats(statChanges)
 				statusChanges = self.moveStatus(statusConds)
@@ -325,7 +326,7 @@ class EasyOpponent(Player):
 
 	def moveStats(self, changes):
 		# [atk 0, def 1, spatk 2, spdef 3, spd 4]
-		statusChanges = [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]
+		statusChanges = [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]]
 		statChanges = []
 		for d in changes:
 			if d != "":
@@ -348,6 +349,10 @@ class EasyOpponent(Player):
 					statusChanges[1][3] = statChange
 				elif sc == 4:
 					statusChanges[1][4] = statChange
+				elif sc == 5:
+					statusChanges[1][5] = statChange
+				elif sc == 6:
+					statusChanges[1][6] = statChange
 			else:
 				if len(statChanges[sc]) == 2:
 					statChange = int(statChanges[sc][1])
@@ -361,6 +366,10 @@ class EasyOpponent(Player):
 						statusChanges[0][3] = statChange
 					elif sc == 4:
 						statusChanges[0][4] = statChange
+					elif sc == 5:
+						statusChanges[0][5] = statChange
+					elif sc == 6:
+						statusChanges[0][6] = statChange
 				elif len(statChanges[sc]) == 3:
 					inflictStatus = random.randint(1, 100)
 					if int(statChanges[sc][2]) <= inflictStatus:
@@ -375,15 +384,18 @@ class EasyOpponent(Player):
 							statusChanges[0][3] = statChange
 						elif sc == 4:
 							statusChanges[0][4] = statChange
+						elif sc == 5:
+							statusChanges[0][5] = statChange
+						elif sc == 6:
+							statusChanges[0][6] = statChange
 		return statusChanges
 
 	def useMove(self):
-		print("using easy move")
 		move = self.decideMove()
 		msg = "%s used %s!" % (self.cpuActivePkmn, move)
 		hit = False
 		damageDealt = 0
-		statusChange = [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0],
+		statusChange = [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0],
 							[False, False, False, False, False], [False, False, False, False, False]]
 
 		# FIRST: check if the move hitss
@@ -440,7 +452,7 @@ class EasyOpponent(Player):
 					self.sleepCount += 1
 					msg = ("%s is asleep.") % (self.cpuActivePkmn)
 					print(msg)
-		elif isHit <= int(acc):
+		elif acc == "" or isHit <= int(acc):
 			hit = True
 
 		# THEN:
@@ -553,7 +565,55 @@ class MediumOpponent(EasyOpponent):
 						effectiveness *= float(cpuType[1])
 		return effectiveness
 
+	def inflictWhichStatus(self, move):
+		moveStatuses = move.getMoveStatus()
+		# based on base stats bc CPU doesn't necessarily know player's EV spread
+		# on their pkmn, just like you wouldn't irl
+		oppPkmnStats = self.activePkmn.getBaseStats()
+		# ...except for speed
+		checkSpeed = self.cpuActivePkmn.getBattleStats()[5] > self.activePkmn.getBattleStats()[5]
+		for status in range(0, len(moveStatuses)):
+			if moveStatuses[status] != "":
+				if status == 0: # burn
+					if oppPkmnStats[1] > oppPkmnStats[3]: # atk vs spatk
+						return move
+				if status == 1: # para
+					if not checkSpeed:
+						return move
+				else: # poison or sleep (no moves exist that directly freeze)
+					return move
+
+	def inflictWhichStatChange(self, move):
+		moveStats = move.getMoveDStat() # [atk, def, spatk, spdef, spd, acc, eva]
+		# give the "high" determinator a buffer of 3 points
+		hiAtk = self.activePkmn.getBaseStats()[1] >= self.cpuActivePkmn.getBaseStats()[2] - 3 # atk > def?
+		hiDef = self.activePkmn.getBaseStats()[2] >= self.cpuActivePkmn.getBaseStats()[1] - 3 # def > atk?
+		hiSpAtk = self.activePkmn.getBaseStats()[3] >= self.cpuActivePkmn.getBaseStats()[4] - 3 # spatk > spdef?
+		hiSpDef = self.activePkmn.getBaseStats()[4] >= self.cpuActivePkmn.getBaseStats()[3] - 3 # spdef > spatk?
+		hiSpd = self.activePkmn.getBaseStats()[5] >= self.cpuActivePkmn.getBaseStats()[5] - 5 # spd > spd?
+		for stat in range(0, len(moveStats)):
+			if moveStats[stat] != "":
+				specificChanges = [x.strip() for x in moveStats[stat].split(",")]
+				if specificChanges[0] == "u":
+					if stat == 0 and hiDef: # atk
+						return move
+					elif stat == 1 and hiAtk: # def
+						return move
+					elif stat == 2 and hiSpDef: # spatk
+						return move
+					elif stat == 3 and hiSpAtk: # spdef
+						return move
+					elif stat == 4 and hiSpd: # spd
+						return move
+					else:
+						randomInt = random.randint(0, 2) # 33% odds to reduce opponent's accuracy/evasion, as this is not strictly necessary
+						if randomInt == 0:
+							return move
+						else:
+							return None
+
 	def decideMove(self):
+		print("CPU deciding move...")
 		rlMoves = self.cpuActivePkmn.getMoves()
 		cpuPkmnTypes = self.cpuActivePkmn.getType()
 		oppPkmnTypes = self.activePkmn.getType()
@@ -568,6 +628,8 @@ class MediumOpponent(EasyOpponent):
 		effectiveness = self.checkOppEffectiveness(oppPkmnTypes, cpuPkmnTypes)
 		oppRemainingHP = self.activePkmn.getBattleStats()[0] - self.activePkmn.getStatChanges()[0]
 		oppRemainingHPDec = oppRemainingHP / (self.activePkmn.getBattleStats()[0])
+		cpuRemainingHP = self.cpuActivePkmn.getBattleStats()[0] - self.cpuActivePkmn.getStatChanges()[0]
+		cpuRemainingHPDec = cpuRemainingHP / (self.cpuActivePkmn.getBattleStats()[0])
 		if effectiveness >= 2:
 			bestSwitchOuts = []
 			otherSwitchOuts = []
@@ -591,10 +653,23 @@ class MediumOpponent(EasyOpponent):
 					else:
 						randPkmn = random.randint(0, len(otherSwitchOuts) - 1)
 						return ["switch", otherSwitchOuts[randPkmn]]
-
-		# CHECK FOR SUPER EFFECTIVE MOVE
-		# try to find which of ur attacking moves are super-effective...
 		potentialMoves = []
+		checkSpeed = self.cpuActivePkmn.getBattleStats()[5] > self.activePkmn.getBattleStats()[5]
+		# CHECK IF CPU WILL USE A STATUS MOVE
+		if (cpuRemainingHPDec >= 0.8) or (cpuRemainingHPDec <= 0.2 and checkSpeed):
+			for ty in moves:
+				if ty.getMoveCategory() == "Status":
+					if not all(item is "" for item in ty.getMoveStatus()): # check if move inflicts status conditions...
+						if not any(self.activePkmn.getConditions()): # check if plyr pkmn has any status conditions
+							move = self.inflictWhichStatus(ty)
+							if move != None:
+								return move
+					else: # ...otherwise, we know that the move changes the plyr pkmn's stats
+						move = self.inflictWhichStatChange(ty)
+						if move != None:
+							return move
+		# IF NO STATUS MOVES APPLY, THEN CHECK FOR SUPER EFFECTIVE MOVE
+		# try to find which of ur attacking moves are super-effective...
 		for ty in moves:
 			if ty.getMoveCategory() == "Physical" or ty.getMoveCategory() == "Special":
 				mvType = ty.getMoveType()
@@ -624,21 +699,30 @@ class MediumOpponent(EasyOpponent):
 			move = currentMove
 		# ...if none, pick randomly and hope for the best! ¯\_(ツ)_/¯
 		elif len(potentialMoves) == 0:
-			moveNum = random.randint(0, len(moves) - 1)
-			move = moves[moveNum]
+			# cull move list of status condition moves, just in case
+			culledMoves = []
+			for mv in moves:
+				if mv.getMoveCategory() == "Status" and all(item is "" for item in mv.getMoveDStat()):
+					continue
+				else:
+					culledMoves.append(mv)
+			moveNum = random.randint(0, len(culledMoves) - 1)
+			move = culledMoves[moveNum]
 		return move
 
 	def useMove(self):
 		move = self.decideMove()
-		if type(move) != Move and move[0] == "switch":
-			return move
+		# if type(move) != Move and move[0] == "switch":
+		# 	return move
 		msg = "%s used %s!" % (self.cpuActivePkmn, move)
 		hit = False
 		damageDealt = 0
-		statusChange = [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0],
+		statusChange = [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0],
 							[False, False, False, False, False], [False, False, False, False, False]]
 
-		# FIRST: check if the move hitss
+		print("MOVE:", move)
+
+		# FIRST: check if the move hits
 		acc = move.getMoveAccuracy()
 		statusConds = move.getMoveStatus()
 		statChanges = move.getMoveDStat()
@@ -653,7 +737,6 @@ class MediumOpponent(EasyOpponent):
 
 		# THEN:
 		if isPara and (isParaCheck <= 25): # if paralyzed, pkmn has a 25% chance of losing turn
-			print(isParaCheck)
 			hit = False
 			msg = ("%s is paralyzed! It can't move!") % (self.cpuActivePkmn)
 			print(msg)
@@ -692,12 +775,13 @@ class MediumOpponent(EasyOpponent):
 					self.sleepCount += 1
 					msg = ("%s is asleep.") % (self.cpuActivePkmn)
 					print(msg)
-		elif isHit <= int(acc):
+		elif acc == "" or isHit <= int(acc):
 			hit = True
 
 		# THEN:
 		if hit:
-			msg = "%s used %s!" % (self.cpuActivePkmn, move)
+			msg = "%s used %s!" % (self.cpuActivePkmn, move) # e.g. "Raichu used Thunderbolt!"
+			# if a move deals damage, then return the damage it deals + any status changes
 			if move.getMoveCategory() == "Physical" or move.getMoveCategory() == "Special":
 				damageDealt = damageCalculator(self.cpuActivePkmn, self.activePkmn, move)
 				statusChange = self.moveStats(statChanges) + self.moveStatus(statusConds)

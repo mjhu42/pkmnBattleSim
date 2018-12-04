@@ -25,7 +25,7 @@ class Pokemon:
             attr = int(pkmnAttributes[stat])
             self.baseStats.append(attr)
         self.ev = ev # [hp, atk, def, sp. atk, sp. def, spd] int (max 252 per stat, max 510 overall)
-        self.moves = moves # [move1, move2, move3, move4] str
+        self.moves = moves # [move1, move2, move3, move4] Move objects
         self.level = lv # int
         self.isFainted = isFainted
         self.statChanges = statChanges
@@ -87,6 +87,12 @@ class Pokemon:
             adjStats.append(formula)
         return adjStats
     
+    def changeMoves(self, index, move):
+        self.moves[index] = move
+
+    def changeEVs(self, index, ev):
+        self.ev[index] = ev
+
     # get pkmn moves
     def getMoves(self):
         return self.moves
@@ -123,19 +129,19 @@ class Pokemon:
 
     # change stats
     def changeStats(self, stat, stage):
-        if stat == 0:
+        if stat == 0: # ATTACK
             self.statChanges[1] += stage
-        elif stat == 1:
+        elif stat == 1: # DEFENSE
             self.statChanges[2] += stage
-        elif stat == 2:
+        elif stat == 2: # SPECIAL ATTACK
             self.statChanges[3] += stage
-        elif stat == 3:
+        elif stat == 3: # SPECIAL DEFENSE
             self.statChanges[4] += stage
-        elif stat == 4:
+        elif stat == 4: # SPEED
             self.statChanges[5] += stage
-        elif stat == 5:
+        elif stat == 5: # ACCURACY
             self.statChanges[6] += stage
-        elif stat == 6:
+        elif stat == 6: # EVASION
             self.statChanges[7] += stage
 
     def getPPChanges(self):

@@ -23,12 +23,15 @@ class DictBox:
 			count = 0
 			for letter in self.compareText:
 				letter = letter.lower()
-				if nameList[count] == letter:
+				if count > len(nameList) - 1:
+					break
+				elif nameList[count] == letter:
 					count += 1
 				else:
 					break
 				if count == len(self.compareText):
-					screen.blit(self.font.render(name, True, (0, 0, 0)), (self.topLeft[0] + 10, yTxt + 10))
+					screen.blit(self.font.render(name, True, (0, 0, 0)),
+									(self.topLeft[0] + 10, yTxt + 10))
 					yTxt += 15
 
 class MoveDictBox(DictBox):
