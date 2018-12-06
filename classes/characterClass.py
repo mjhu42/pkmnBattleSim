@@ -25,6 +25,7 @@ class Player:
 		self.cpuActivePkmn = newPkmn
 
 	def moveStatus(self, conditions):
+		inflictedStatusMsg = ""
 		# [burn 0, para 1, poison 2, sleep 3, freeze 4]
 		statusChanges = [[False, False, False, False, False], [False, False, False, False, False]]
 		cpuCurrentStatChanges = self.cpuActivePkmn.getConditions()
@@ -33,102 +34,172 @@ class Player:
 			for i in range(0, 5):
 				cpuCurrentStatChanges[i] = False
 			statusChanges[0][3] = True
-			return statusChanges
+			inflictedStatusMsg = ("%s fell asleep!") % (self.activePkmn)
+			return [statusChanges, inflictedStatusMsg]
 		
 		# otherwise, check if cpu is already inflicted with a status condition;
 		# if yes, no more status condition changes
 		for i in cpuCurrentStatChanges:
 			if i == True:
-				return statusChanges
+				return [statusChanges, ""]
 
 		r = random.randint(1, 100)
 		for c in range(0, len(conditions)):
 			if conditions[c] != "" and r <= int(conditions[c]):
 				if c == 0:
 					statusChanges[1][0] = True
+					inflictedStatusMsg = ("%s was burned!") % (self.cpuActivePkmn)
 				elif c == 1:
 					statusChanges[1][1] = True
+					inflictedStatusMsg = ("%s was paralyzed!") % (self.cpuActivePkmn)
 				elif c == 2:
 					statusChanges[1][2] = True
+					inflictedStatusMsg = ("%s was poisoned!") % (self.cpuActivePkmn)
 				elif c == 3:
 					statusChanges[1][3] = True
+					inflictedStatusMsg = ("%s fell asleep!") % (self.cpuActivePkmn)
 				elif c == 4:
 					statusChanges[1][4] = True
-		return statusChanges
+					inflictedStatusMsg = ("%s was frozen!") % (self.cpuActivePkmn)
+		for status in range(0, len(statusChanges[1])):
+			if statusChanges[1][status]:
+				self.cpuActivePkmn.changeConditions(status)
+				break
+		return [statusChanges, inflictedStatusMsg]
 
 	def moveStats(self, changes):
+		inflictedStatMsg = ""
 		# [atk 0, def 1, spatk 2, spdef 3, spd 4]
 		statusChanges = [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]]
 		statChanges = []
 		for d in changes:
 			if d != "":
+				print(d)
 				stripped = [x.strip() for x in d.split(",")]
 				statChanges.append(stripped)
 			else:
 				statChanges.append(None)
+		statsList = ["Attack", "Defense", "Sp. Attack", "Sp. Defense", "Speed", "accuracy", "evasiveness"]
 		for sc in range(0, len(statChanges)):
 			if statChanges[sc] == None:
 				continue
-			if statChanges[sc][0] == "u":
+			elif statChanges[sc][0] == "u": # USER STAT EFFECTS DUE TO MOVE
 				statChange = int(statChanges[sc][1])
-				if sc == 0: # atk
-					statusChanges[0][0] = statChange
-				elif sc == 1: # def
-					statusChanges[0][1] = statChange
-				elif sc == 2: # spatk
-					statusChanges[0][2] = statChange
-				elif sc == 3: # spdef
-					statusChanges[0][3] = statChange
-				elif sc == 4: # spd
-					statusChanges[0][4] = statChange
-				elif sc == 5: # acc
-					statusChanges[0][5] = statChange
-				elif sc == 6: # eva
-					statusChanges[0][6] = statChange
-			else:
+				if len(statChanges[sc]) == 2:
+					statusChanges[0][sc] = statChange
+					checkStatsPlyr = self.activePkmn.getStatChanges()[sc + 1] + statChange
+					if self.activePkmn.getStatChanges()[sc + 1] == 6:
+						inflictedStatMsg += (("%s's %s can't go any higher!") % (self.activePkmn, statsList[sc])) + "\n"
+						statChanges[0][sc] = 0
+					elif self.activePkmn.getStatChanges()[sc + 1] == -6:
+						inflictedStatMsg += (("%s's %s can't go any lower!") % (self.activePkmn, statsList[sc])) + "\n"
+						statChanges[0][sc] = 0
+					elif checkStatsPlyr > 6:
+						inflictedStatsMsg += (("%s's %s rose!") % (self.activePkmn, statsList[sc])) + "\n"
+						statChanges[0][sc] = checkStatsPlyr - 6
+						self.activePkmn.changeStats(sc, statChanges[0][sc])
+					elif checkStatsPlyr < -6:
+						inflictedStatsMsg += (("%s's %s fell!") % (self.activePkmn, statsList[sc])) + "\n"
+						statChanges[0][sc] = checkStatsPlyr + 6
+						self.activePkmn.changeStats(sc, statChanges[0][sc])
+					else:
+						if statChange < 0:
+							inflictedStatMsg += (("%s's %s fell!") % (self.activePkmn, statsList[sc])) + "\n"
+							self.activePkmn.changeStats(sc, statChange)
+						elif statChange > 0:
+							inflictedStatMsg += (("%s's %s rose!") % (self.activePkmn, statsList[sc])) + "\n"
+							self.activePkmn.changeStats(sc, statChange)
+				elif len(statChanges[sc]) == 3:
+					inflictStatus = random.randint(1, 100)
+					if int(statChanges[sc][2]) <= inflictStatus:
+						statusChanges[0][sc] = statChange
+						checkStatsPlyr = self.activePkmn.getStatChanges()[sc + 1] + statChange
+						if self.activePkmn.getStatChanges()[sc + 1] == 6:
+							inflictedStatMsg += (("%s's %s can't go any higher!") % (self.activePkmn, statsList[sc])) + "\n"
+							statChanges[0][sc] = 0
+						elif self.activePkmn.getStatChanges()[sc + 1] == -6:
+							inflictedStatMsg += (("%s's %s can't go any lower!") % (self.activePkmn, statsList[sc])) + "\n"
+							statChanges[0][sc] = 0
+						elif checkStatsPlyr > 6:
+							inflictedStatsMsg += (("%s's %s rose!") % (self.activePkmn, statsList[sc])) + "\n"
+							statChanges[0][sc] = checkStatsPlyr - 6
+							self.activePkmn.changeStats(sc, statChanges[0][sc])
+						elif checkStatsPlyr < -6:
+							inflictedStatsMsg += (("%s's %s fell!") % (self.activePkmn, statsList[sc])) + "\n"
+							statChanges[0][sc] = checkStatsPlyr + 6
+							self.activePkmn.changeStats(sc, statChanges[0][sc])
+						else:
+							if statChange < 0:
+								inflictedStatMsg += (("%s's %s fell!") % (self.activePkmn, statsList[sc])) + "\n"
+								self.activePkmn.changeStats(sc, statChange)
+							elif statChange > 0:
+								inflictedStatMsg += (("%s's %s rose!") % (self.activePkmn, statsList[sc])) + "\n"
+								self.activePkmn.changeStats(sc, statChange)
+			else: # CPU STAT EFFECTS DUE TO MOVE
 				if len(statChanges[sc]) == 2:
 					statChange = int(statChanges[sc][1])
-					if sc == 0:
-						statusChanges[1][0] = statChange
-					elif sc == 1:
-						statusChanges[1][1] = statChange
-					elif sc == 2:
-						statusChanges[1][2] = statChange
-					elif sc == 3:
-						statusChanges[1][3] = statChange
-					elif sc == 4:
-						statusChanges[1][4] = statChange
-					elif sc == 5: # acc
-						statusChanges[1][5] = statChange
-					elif sc == 6: # eva
-						statusChanges[1][6] = statChange
-				elif len(statChanges[sc]) == 2:
+					statusChanges[1][sc] = statChange
+					checkStatsCPU = self.cpuActivePkmn.getStatChanges()[sc + 1] + statChange
+					if self.cpuActivePkmn.getStatChanges()[sc + 1] == 6:
+						inflictedStatMsg += (("%s's %s can't go any higher!") % (self.cpuActivePkmn, statsList[sc])) + "\n"
+						statChanges[1][sc] = 0
+					elif self.cpuActivePkmn.getStatChanges()[sc + 1] == -6:
+						inflictedStatMsg += (("%s's %s can't go any lower!") % (self.cpuActivePkmn, statsList[sc])) + "\n"
+						statChanges[1][sc] = 0
+					elif checkStatsCPU > 6:
+						inflictedStatsMsg += (("%s's %s rose!") % (self.cpuActivePkmn, statsList[sc])) + "\n"
+						statChanges[1][sc] = checkStatsCPU - 6
+						self.cpuActivePkmn.changeStats(sc, statChanges[0][sc])
+					elif checkStatsCPU < -6:
+						inflictedStatsMsg += (("%s's %s fell!") % (self.cpuActivePkmn, statsList[sc])) + "\n"
+						statChanges[1][sc] = checkStatsCPU + 6
+						self.cpuActivePkmn.changeStats(sc, statChanges[0][sc])
+					else:
+						if statChange < 0:
+							inflictedStatMsg += (("%s's %s fell!") % (self.cpuActivePkmn, statsList[sc])) + "\n"
+							self.cpuActivePkmn.changeStats(sc, statChange)
+						elif statChange > 0:
+							inflictedStatMsg += (("%s's %s rose!") % (self.cpuActivePkmn, statsList[sc])) + "\n"
+							self.cpuActivePkmn.changeStats(sc, statChange)
+				elif len(statChanges[sc]) == 3:
 					inflictStatus = random.randint(1, 100)
 					if int(statChanges[sc][2]) <= inflictStatus:
 						statChange = int(statChanges[sc][1])
-						if sc == 0:
-							statusChanges[1][0] = statChange
-						elif sc == 1:
-							statusChanges[1][1] = statChange
-						elif sc == 2:
-							statusChanges[1][2] = statChange
-						elif sc == 3:
-							statusChanges[1][3] = statChange
-						elif sc == 4:
-							statusChanges[1][4] = statChange
-						elif sc == 5: # acc
-							statusChanges[1][5] = statChange
-						elif sc == 6: # eva
-							statusChanges[1][6] = statChange
-		return statusChanges
+						statusChanges[1][sc] = statChange
+						checkStatsCPU = self.cpuActivePkmn.getStatChanges()[sc + 1] + statChange
+						if self.cpuActivePkmn.getStatChanges()[sc + 1] == 6:
+							inflictedStatMsg += (("%s's %s can't go any higher!") % (self.cpuActivePkmn, statsList[sc])) + "\n"
+							statChanges[1][sc] = 0
+						elif self.cpuActivePkmn.getStatChanges()[sc + 1] == -6:
+							inflictedStatMsg += (("%s's %s can't go any lower!") % (self.cpuActivePkmn, statsList[sc])) + "\n"
+							statChanges[1][sc] = 0
+						elif checkStatsCPU > 6:
+							inflictedStatsMsg += (("%s's %s rose!") % (self.cpuActivePkmn, statsList[sc])) + "\n"
+							statChanges[1][sc] = checkStatsCPU - 6
+							self.cpuActivePkmn.changeStats(sc, statChanges[0][sc])
+						elif checkStatsCPU < -6:
+							inflictedStatsMsg += (("%s's %s fell!") % (self.cpuActivePkmn, statsList[sc])) + "\n"
+							statChanges[1][sc] = checkStatsCPU + 6
+							self.cpuActivePkmn.changeStats(sc, statChanges[0][sc])
+						else:
+							if statChange < 0:
+								inflictedStatMsg += (("%s's %s fell!") % (self.cpuActivePkmn, statsList[sc])) + "\n"
+								self.cpuActivePkmn.changeStats(sc, statChange)
+							elif statChange > 0:
+								inflictedStatMsg += (("%s's %s rose!") % (self.cpuActivePkmn, statsList[sc])) + "\n"
+								self.cpuActivePkmn.changeStats(sc, statChange)
+		return [statusChanges, inflictedStatMsg]
 
 	def specialMoveStats(self, move):
 		if move == "Ancient Power":
 			r = random.randint(1, 100)
 			if 10 <= r:
-				return [[1, 1, 1, 1, 1]]
+				return [[1, 1, 1, 1, 1, 1, 1]]
 
 	def useMove(self, move):
+		currentStatusMsg = ""
+		inflictedStatusMsg = ""
+		inflictedStatMsg = ""
 		# have the current pkmn use a move
 		hit = False
 		damageDealt = 0
@@ -148,61 +219,67 @@ class Player:
 		isSleep = self.activePkmn.getConditions()[3]
 
 		# THEN:
-		if isPara and (25 <= isParaCheck): # if paralyzed, pkmn has a 20% chance of losing turn
+		if isPara and (20 <= isParaCheck): # if paralyzed, pkmn has a 20% chance of losing turn
 			hit = False
-			msg = ("%s is paralyzed! It can't move!") % (self.activePkmn)
-			print(msg)
+			currentStatusMsg = ("%s is paralyzed! It can't move!") % (self.activePkmn)
+			print(currentStatusMsg)
 		elif isFrozen: # pkmn has a 20% chance of thawing out each turn
 			if (20 <= isFrozenCheck):
 				self.activePkmn.changeConditionsFalse(4)
-				msg = ("%s thawed out!") % (self.activePkmn)
+				currentStatusMsg = ("%s thawed out!") % (self.activePkmn)
 				hit = True
-				print(msg)
+				print(currentStatusMsg)
 			else:
 				hit = False
-				msg = ("%s is frozen! It can't move!") % (self.activePkmn)
-				print(msg)
+				currentStatusMsg = ("%s is frozen! It can't move!") % (self.activePkmn)
+				print(currentStatusMsg)
 		elif isSleep: # sleeps for 1-3 turns
 			if self.sleepCount == 0:
 				hit = False
 				self.sleepCount += 1
-				msg = print("%s is asleep.") % (self.activePkmn)
-				print(msg)
+				currentStatusMsg = print("%s is asleep.") % (self.activePkmn)
+				print(currentStatusMsg)
 			elif self.sleepCount == 3:
 				hit = True
 				self.activePkmn.changeConditionsFalse(3)
 				self.sleepCount = 0
-				msg = ("%s woke up!") % (self.activePkmn)
-				print(msg)
+				currentStatusMsg = ("%s woke up!") % (self.activePkmn)
+				print(currentStatusMsg)
 			else:
 				sleepCheck = random.randint(1, 100)
 				if 50 <= sleepCheck:
 					hit = True
 					self.activePkmn.changeConditionsFalse(3)
 					self.sleepCount = 0
-					msg = ("%s woke up!") % (self.activePkmn)
-					print(msg)
+					currentStatusMsg = ("%s woke up!") % (self.activePkmn)
+					print(currentStatusMsg)
 				else:
 					hit = False
 					self.sleepCount += 1
-					msg = ("%s is asleep.") % (self.activePkmn)
-					print(msg)
-		elif isHit <= int(acc) or acc == "":
+					currentStatusMsg = ("%s is asleep.") % (self.activePkmn)
+					print(currentStatusMsg)
+		elif acc == "" or isHit <= int(acc):
 			hit = True
 
 		if hit:
 			msg = "%s used %s!" % (self.activePkmn, move)
 			if move.getMoveCategory() == "Physical" or move.getMoveCategory() == "Special":
-				print(self.cpuActivePkmn)
 				damageDealt = damageCalculator(self.activePkmn, self.cpuActivePkmn, move)
-				statChanges = self.moveStats(statChanges)
-				statusChanges = self.moveStatus(statusConds)
+				stats = self.moveStats(statChanges)
+				status = self.moveStatus(statusConds)
+				statChanges = stats[0]
+				statusChanges = status[0]
 				statusChange = statChanges + statusChanges
+				inflictedStatMsg = stats[1]
+				inflictedStatusMsg = status[1]
 			else:
-				statusChange = statusCalculator(self.activePkmn, self.cpuActivePkmn, move)
-		elif not isPara or not isFrozen or not isSleep:
+				statusMove = statusCalculator(self.activePkmn, self.cpuActivePkmn, move)
+				statusChange = statusMove[0:4]
+				inflictedStatMsg = statusMove[4][1]
+				inflictedStatusMsg = statusMove[4][0]
+		elif not isPara and not isFrozen and not isSleep:
 			msg = "%s used %s! %s's attack missed!" % (self.activePkmn, move, self.activePkmn)
-		return [damageDealt, statusChange, msg]
+		return [damageDealt, statusChange, [msg, inflictedStatMsg, inflictedStatusMsg, currentStatusMsg]]
 	
 class EasyOpponent(Player):
 	def __init__(self, activePkmn, party, cpuActivePkmn, cpuParty, pkmnDict, moveDict):
@@ -240,8 +317,9 @@ class EasyOpponent(Player):
 				potentialPkmn.append(pkmn)
 		if len(potentialPkmn) != 0:
 			randPkmn = random.randint(0, len(potentialPkmn) - 1)
+			msg = ("%s switched out for %s!") % (self.cpuActivePkmn, potentialPkmn[randPkmn])
 			self.cpuActivePkmn = potentialPkmn[randPkmn]
-			return self.cpuActivePkmn
+			return [self.cpuActivePkmn, msg]
 		else:
 			return 0
 
@@ -303,28 +381,43 @@ class EasyOpponent(Player):
 		return move
 
 	def moveStatus(self, conditions):
+		inflictedStatusMsg = ""
 		# [burn 0, para 1, poison 2, sleep 3, freeze 4]
 		statusChanges = [[False, False, False, False, False], [False, False, False, False, False]]
+		plyrCurrentStatChanges = self.activePkmn.getConditions()
 		if conditions[3] == "u, 100": # if move used is rest
 			statusChanges[1][3] = True
-			return statusChanges
+			return [statusChanges, ""]
+		for i in plyrCurrentStatChanges:
+			if i:
+				return [statusChanges, ""]
 		else:
 			r = random.randint(1, 100)
 			for c in range(0, len(conditions)):
 				if conditions[c] != "" and r <= int(conditions[c]):
 					if c == 0:
 						statusChanges[0][0] = True
+						inflictedStatusMsg = ("%s was burned!") % (self.activePkmn)
 					elif c == 1:
 						statusChanges[0][1] = True
+						inflictedStatusMsg = ("%s was paralyzed!") % (self.activePkmn)
 					elif c == 2:
 						statusChanges[0][2] = True
+						inflictedStatusMsg = ("%s was poisoned!") % (self.activePkmn)
 					elif c == 3:
 						statusChanges[0][3] = True
+						inflictedStatusMsg = ("%s was fell asleep!") % (self.activePkmn)
 					elif c == 4:
 						statusChanges[0][4] = True
-		return statusChanges
+						inflictedStatusMsg = ("%s was frozen!") % (self.activePkmn)
+		for status in range(0, len(statusChanges[1])):
+			if statusChanges[0][status]:
+				self.activePkmn.changeConditions(status)
+				break
+		return [statusChanges, inflictedStatusMsg]
 
 	def moveStats(self, changes):
+		inflictedStatMsg = ""
 		# [atk 0, def 1, spatk 2, spdef 3, spd 4]
 		statusChanges = [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]]
 		statChanges = []
@@ -334,63 +427,120 @@ class EasyOpponent(Player):
 				statChanges.append(stripped)
 			else:
 				statChanges.append(None)
+		statsList = ["Attack", "Defense", "Sp. Attack", "Sp. Defense", "Speed", "accuracy", "evasion"]
 		for sc in range(0, len(statChanges)):
 			if statChanges[sc] == None:
 				continue
-			if statChanges[sc][0] == "u":
+			elif statChanges[sc][0] == "u": # CPU STAT EFFECTS DUE TO MOVE
 				statChange = int(statChanges[sc][1])
-				if sc == 0:
-					statusChanges[1][0] = statChange
-				elif sc == 1:
-					statusChanges[1][1] = statChange
-				elif sc == 2:
-					statusChanges[1][2] = statChange
-				elif sc == 3:
-					statusChanges[1][3] = statChange
-				elif sc == 4:
-					statusChanges[1][4] = statChange
-				elif sc == 5:
-					statusChanges[1][5] = statChange
-				elif sc == 6:
-					statusChanges[1][6] = statChange
-			else:
 				if len(statChanges[sc]) == 2:
-					statChange = int(statChanges[sc][1])
-					if sc == 0:
-						statusChanges[0][0] = statChange
-					elif sc == 1:
-						statusChanges[0][1] = statChange
-					elif sc == 2:
-						statusChanges[0][2] = statChange
-					elif sc == 3:
-						statusChanges[0][3] = statChange
-					elif sc == 4:
-						statusChanges[0][4] = statChange
-					elif sc == 5:
-						statusChanges[0][5] = statChange
-					elif sc == 6:
-						statusChanges[0][6] = statChange
+					statusChanges[1][sc] = statChange
+					checkStatsCPU = self.cpuActivePkmn()[sc + 1] + statChange
+					if self.cpuActivePkmn.getStatChanges()[sc + 1] == 6:
+						inflictedStatMsg += (("%s's %s can't go any higher!") % (self.cpuActivePkmn, statsList[sc])) + "\n"
+						statChanges[1][sc] = 0
+					elif self.cpuActivePkmn.getStatChanges()[sc + 1] == -6:
+						inflictedStatMsg += (("%s's %s can't go any higher!") % (self.cpuActivePkmn, statsList[sc])) + "\n"
+						statChanges[1][sc] = 0
+					elif checkStatsPlyr > 6:
+						inflictedStatMsg += (("%s's %s rose!") % (self.cpuActivePkmn, statsList[sc])) + "\n"
+						statChanges[1][sc] = checkStatsCPU - 6
+						self.cpuActivePkmn.changeStats(sc, statChanges[1][sc])
+					elif checkStatsPlyr < -6:
+						inflictedStatMsg += (("%s's %s rose!") % (self.cpuActivePkmn, statsList[sc])) + "\n"
+						statChanges[1][sc] = checkStatsCPU + 6
+						self.cpuActivePkmn.changeStats(sc, statChanges[1][sc])
+					else:
+						if statChange < 0:
+							inflictedStatMsg += (("%s's %s fell!") % (self.cpuActivePkmn, statsList[sc])) + "\n"
+							self.cpuActivePkmn.changeStats(sc, statChange)
+						elif statChange > 0:
+							inflictedStatMsg += (("%s's %s rose!") % (self.cpuActivePkmn, statsList[sc])) + "\n"
+							self.cpuActivePkmn.changeStats(sc, statChange)
 				elif len(statChanges[sc]) == 3:
 					inflictStatus = random.randint(1, 100)
 					if int(statChanges[sc][2]) <= inflictStatus:
-						statChange = int(statChanges[sc][1])
-						if sc == 0:
-							statusChanges[0][0] = statChange
-						elif sc == 1:
-							statusChanges[0][1] = statChange
-						elif sc == 2:
-							statusChanges[0][2] = statChange
-						elif sc == 3:
-							statusChanges[0][3] = statChange
-						elif sc == 4:
-							statusChanges[0][4] = statChange
-						elif sc == 5:
-							statusChanges[0][5] = statChange
-						elif sc == 6:
-							statusChanges[0][6] = statChange
-		return statusChanges
+						statusChanges[1][sc] = statChange
+						checkStatsCPU = self.cpuActivePkmn()[sc + 1] + statChange
+						if self.cpuActivePkmn.getStatChanges()[sc + 1] == 6:
+							inflictedStatMsg += (("%s's %s can't go any higher!") % (self.cpuActivePkmn, statsList[sc])) + "\n"
+							statChanges[1][sc] = 0
+						elif self.cpuActivePkmn.getStatChanges()[sc + 1] == -6:
+							inflictedStatMsg += (("%s's %s can't go any higher!") % (self.cpuActivePkmn, statsList[sc])) + "\n"
+							statChanges[1][sc] = 0
+						elif checkStatsPlyr > 6:
+							inflictedStatMsg += (("%s's %s rose!") % (self.cpuActivePkmn, statsList[sc])) + "\n"
+							statChanges[1][sc] = checkStatsCPU - 6
+							self.cpuActivePkmn.changeStats(sc, statChanges[1][sc])
+						elif checkStatsPlyr < -6:
+							inflictedStatMsg += (("%s's %s rose!") % (self.cpuActivePkmn, statsList[sc])) + "\n"
+							statChanges[1][sc] = checkStatsCPU + 6
+							self.cpuActivePkmn.changeStats(sc, statChanges[1][sc])
+						else:
+							if statChange < 0:
+								inflictedStatMsg += (("%s's %s fell!") % (self.cpuActivePkmn, statsList[sc])) + "\n"
+								self.cpuActivePkmn.changeStats(sc, statChange)
+							elif statChange > 0:
+								inflictedStatMsg += (("%s's %s rose!") % (self.cpuActivePkmn, statsList[sc])) + "\n"
+								self.cpuActivePkmn.changeStats(sc, statChange)
+			else:
+				statChange = int(statChanges[sc][1])
+				if len(statChanges[sc]) == 2:
+					statusChanges[0][sc] = statChange
+					checkStatsPlyr = self.activePkmn.getStatChanges()[sc + 1] + statChange
+					if self.activePkmn.getStatChanges()[sc + 1] == 6:
+						inflictedStatMsg += (("%s's %s can't go any higher!") % (self.activePkmn, statsList[sc])) + "\n"
+						statChanges[0][sc] = 0
+					elif self.activePkmn.getStatChanges()[sc + 1] == -6:
+						inflictedStatMsg += (("%s's %s can't go any lower!") % (self.activePkmn, statsList[sc])) + "\n"
+						statChanges[0][sc] = 0
+					elif checkStatsPlyr > 6:
+						inflictedStatsMsg += (("%s's %s rose!") % (self.activePkmn, statsList[sc])) + "\n"
+						statChanges[0][sc] = checkStatsPlyr - 6
+						self.activePkmn.changeStats(sc, statChanges[0][sc])
+					elif checkStatsPlyr < -6:
+						inflictedStatsMsg += (("%s's %s fell!") % (self.activePkmn, statsList[sc])) + "\n"
+						statChanges[0][sc] = checkStatsPlyr + 6
+						self.activePkmn.changeStats(sc, statChanges[0][sc])
+					else:
+						if statChange < 0:
+							inflictedStatMsg += (("%s's %s fell!") % (self.activePkmn, statsList[sc])) + "\n"
+							self.activePkmn.changeStats(sc, statChange)
+						elif statChange > 0:
+							inflictedStatMsg += (("%s's %s rose!") % (self.activePkmn, statsList[sc])) + "\n"
+							self.activePkmn.changeStats(sc, statChange)
+				elif len(statChanges[sc]) == 3:
+					inflictStatus = random.randint(1, 100)
+					if int(statChanges[sc][2]) <= inflictStatus:
+						statusChanges[0][sc] = statChange
+						checkStatsPlyr = self.activePkmn.getStatChanges()[sc + 1] + statChange
+						if self.activePkmn.getStatChanges()[sc + 1] == 6:
+							inflictedStatMsg += (("%s's %s can't go any higher!") % (self.activePkmn, statsList[sc])) + "\n"
+							statChanges[0][sc] = 0
+						elif self.activePkmn.getStatChanges()[sc + 1] == -6:
+							inflictedStatMsg += (("%s's %s can't go any lower!") % (self.activePkmn, statsList[sc])) + "\n"
+							statChanges[0][sc] = 0
+						elif checkStatsPlyr > 6:
+							inflictedStatsMsg += (("%s's %s rose!") % (self.activePkmn, statsList[sc])) + "\n"
+							statChanges[0][sc] = checkStatsPlyr - 6
+							self.activePkmn.changeStats(sc, statChanges[0][sc])
+						elif checkStatsPlyr < -6:
+							inflictedStatsMsg += (("%s's %s fell!") % (self.activePkmn, statsList[sc])) + "\n"
+							statChanges[0][sc] = checkStatsPlyr + 6
+							self.activePkmn.changeStats(sc, statChanges[0][sc])
+						else:
+							if statChange < 0:
+								inflictedStatMsg += (("%s's %s fell!") % (self.activePkmn, statsList[sc])) + "\n"
+								self.activePkmn.changeStats(sc, statChange)
+							elif statChange > 0:
+								inflictedStatMsg += (("%s's %s rose!") % (self.activePkmn, statsList[sc])) + "\n"
+								self.activePkmn.changeStats(sc, statChange)
+		return [statusChanges, inflictedStatMsg]
 
 	def useMove(self):
+		currentStatusMsg = ""
+		inflictedStatusMsg = ""
+		inflictedStatMsg = ""
 		move = self.decideMove()
 		msg = "%s used %s!" % (self.cpuActivePkmn, move)
 		hit = False
@@ -415,43 +565,43 @@ class EasyOpponent(Player):
 		if isPara and (isParaCheck <= 25): # if paralyzed, pkmn has a 25% chance of losing turn
 			print(isParaCheck)
 			hit = False
-			msg = ("%s is paralyzed! It can't move!") % (self.cpuActivePkmn)
-			print(msg)
+			currentStatusMsg = ("%s is paralyzed! It can't move!") % (self.cpuActivePkmn)
+			print(currentStatusMsg)
 		elif isFrozen: # pkmn has a 20% chance of thawing out each turn
 			if (isFrozenCheck <= 20):
 				self.cpuActivePkmn.changeConditionsFalse(4)
-				msg = ("%s thawed out!") % (self.cpuActivePkmn)
+				currentStatusMsg = ("%s thawed out!") % (self.cpuActivePkmn)
 				hit = True
-				print(msg)
+				print(currentStatusMsg)
 			else:
 				hit = False
-				msg = ("%s is frozen! It can't move!") % (self.cpuActivePkmn)
-				print(msg)
+				currentStatusMsg = ("%s is frozen! It can't move!") % (self.cpuActivePkmn)
+				print(currentStatusMsg)
 		elif isSleep: # sleeps for 1-3 turns
 			if self.sleepCount == 0:
 				hit = False
 				self.sleepCount += 1
-				msg = ("%s is asleep.") % (self.cpuActivePkmn)
-				print(msg)
+				currentStatusMsg = ("%s is asleep.") % (self.cpuActivePkmn)
+				print(currentStatusMsg)
 			elif self.sleepCount == 3:
 				hit = True
 				self.cpuActivePkmn.changeConditionsFalse(3)
 				self.sleepCount = 0
-				msg = ("%s woke up!") % (self.cpuActivePkmn)
-				print(msg)
+				currentStatusMsg = ("%s woke up!") % (self.cpuActivePkmn)
+				print(currentStatusMsg)
 			else:
 				sleepCheck = random.randint(1, 100)
 				if 50 <= sleepCheck:
 					hit = True
 					self.cpuActivePkmn.changeConditionsFalse(3)
 					self.sleepCount = 0
-					msg = ("%s woke up!") % (self.cpuActivePkmn)
-					print(msg)
+					currentStatusMsg = ("%s woke up!") % (self.cpuActivePkmn)
+					print(currentStatusMsg)
 				else:
 					hit = False
 					self.sleepCount += 1
-					msg = ("%s is asleep.") % (self.cpuActivePkmn)
-					print(msg)
+					currentStatusMsg = ("%s is asleep.") % (self.cpuActivePkmn)
+					print(currentStatusMsg)
 		elif acc == "" or isHit <= int(acc):
 			hit = True
 
@@ -460,15 +610,25 @@ class EasyOpponent(Player):
 			msg = "%s used %s!" % (self.cpuActivePkmn, move)
 			if move.getMoveCategory() == "Physical" or move.getMoveCategory() == "Special":
 				damageDealt = damageCalculator(self.cpuActivePkmn, self.activePkmn, move)
-				statusChange = self.moveStats(statChanges) + self.moveStatus(statusConds)
+				stats = self.moveStats(statChanges)
+				status = self.moveStatus(statusConds)
+				statChanges = stats[0]
+				statusChanges = status[0]
+				statusChange = statChanges + statusChanges
+				inflictedStatMsg = stats[1]
+				inflictedStatusMsg = status[1]
 			else:
-				statusChange = statusCalculator(self.cpuActivePkmn, self.activePkmn, move)
-				switch1 = [statusChange[1], statusChange[0]]
-				switch2 = [statusChange[3], statusChange[2]]
-				statusChange = switch1 + switch2
-		elif not isPara or not isFrozen or not isSleep:
+				statusMove = statusCalculator(self.cpuActivePkmn, self.activePkmn, move)
+				switch1 = [statusMove[1], statusMove[0]]
+				switch2 = [statusMove[3], statusMove[2]]
+				statusMove = switch1 + switch2 + [statusMove[4]]
+				print(statusMove)
+				statusChange = statusMove[0:4]
+				inflictedStatMsg = statusMove[4][1]
+				inflictedStatusMsg = statusMove[4][0]
+		elif not isPara and not isFrozen and not isSleep:
 			msg = "%s used %s! %s's attack missed!" % (self.cpuActivePkmn, move, self.cpuActivePkmn)
-		return [damageDealt, statusChange, msg]
+		return [damageDealt, statusChange, [msg, inflictedStatMsg, inflictedStatusMsg, currentStatusMsg]]
 
 class MediumOpponent(EasyOpponent):
 	def __init__(self, activePkmn, party, cpuActivePkmn, cpuParty, pkmnDict, moveDict):
@@ -505,27 +665,33 @@ class MediumOpponent(EasyOpponent):
 		if len(bestPotentialPkmn) != 0:
 			if len(bestPotentialPkmn) > 1:
 				randPkmn = random.randint(0, len(bestPotentialPkmn) - 1)
+				msg = ("%s switched out for %s!") % (self.cpuActivePkmn, bestPotentialPkmn[randPkmn])
 				self.cpuActivePkmn = bestPotentialPkmn[randPkmn]
-				return self.cpuActivePkmn
+				return [self.cpuActivePkmn, msg]
 			else:
+				msg = ("%s switched out for %s!") % (self.cpuActivePkmn, bestPotentialPkmn[0])
 				self.cpuActivePkmn = bestPotentialPkmn[0]
-				return self.cpuActivePkmn
+				return [self.cpuActivePkmn, msg]
 		elif len(otherPotentialPkmn) != 0:
 			if len(otherPotentialPkmn) > 1:
 				randPkmn = random.randint(0, len(bestPotentialPkmn) - 1)
+				msg = ("%s switched out for %s!") % (self.cpuActivePkmn, otherPontentialPkmn[randPkmn])
 				self.cpuActivePkmn = otherPotentialPkmn[randPkmn]
-				return self.cpuActivePkmn
+				return [self.cpuActivePkmn, msg]
 			else:
+				msg = ("%s switched out for %s!") % (self.cpuActivePkmn, otherPotentialPkmn[0])
 				self.cpuActivePkmn = otherPotentialPkmn[0]
-				return self.cpuActivePkmn
+				return [self.cpuActivePkmn, msg]
 		elif len(lastResortPkmn) != 0:
 			if len(lastResortPkmn) > 1:
 				randPkmn = random.randint(0, len(bestPotentialPkmn) - 1)
+				msg = ("%s switched out for %s!") % (self.cpuActivePkmn, lastResortPkmn[randPkmn])
 				self.cpuActivePkmn = lastResortPkmn[randPkmn]
-				return self.cpuActivePkmn
+				return [self.cpuActivePkmn, msg]
 			else:
+				msg = ("%s switched out for %s!") % (self.cpuActivePkmn, lastResortPkmn[0])
 				self.cpuActivePkmn = lastResortPkmn[0]
-				return self.cpuActivePkmn
+				return [self.cpuActivePkmn, msg]
 		else:
 			return 0
 
@@ -711,16 +877,17 @@ class MediumOpponent(EasyOpponent):
 		return move
 
 	def useMove(self):
+		currentStatusMsg = ""
+		inflictedStatusMsg = ""
+		inflictedStatMsg = ""
 		move = self.decideMove()
-		# if type(move) != Move and move[0] == "switch":
-		# 	return move
+		if type(move) != Move and move[0] == "switch":
+			return move
 		msg = "%s used %s!" % (self.cpuActivePkmn, move)
 		hit = False
 		damageDealt = 0
 		statusChange = [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0],
 							[False, False, False, False, False], [False, False, False, False, False]]
-
-		print("MOVE:", move)
 
 		# FIRST: check if the move hits
 		acc = move.getMoveAccuracy()
@@ -784,12 +951,22 @@ class MediumOpponent(EasyOpponent):
 			# if a move deals damage, then return the damage it deals + any status changes
 			if move.getMoveCategory() == "Physical" or move.getMoveCategory() == "Special":
 				damageDealt = damageCalculator(self.cpuActivePkmn, self.activePkmn, move)
-				statusChange = self.moveStats(statChanges) + self.moveStatus(statusConds)
+				stats = self.moveStats(statChanges)
+				status = self.moveStatus(statusConds)
+				statChanges = stats[0]
+				statusChanges = status[0]
+				statusChange = statChanges + statusChanges
+				inflictedStatMsg = stats[1]
+				inflictedStatusMsg = status[1]
 			else:
-				statusChange = statusCalculator(self.cpuActivePkmn, self.activePkmn, move)
-				switch1 = [statusChange[1], statusChange[0]]
-				switch2 = [statusChange[3], statusChange[2]]
-				statusChange = switch1 + switch2
-		elif not isPara or not isFrozen or not isSleep:
+				statusMove = statusCalculator(self.cpuActivePkmn, self.activePkmn, move)
+				switch1 = [statusMove[1], statusMove[0]]
+				switch2 = [statusMove[3], statusMove[2]]
+				statusMove = switch1 + switch2 + [statusMove[4]]
+				print(statusMove)
+				statusChange = statusMove[0:4]
+				inflictedStatMsg = statusMove[4][1]
+				inflictedStatusMsg = statusMove[4][0]
+		elif not isPara and not isFrozen and not isSleep:
 			msg = "%s used %s! %s's attack missed!" % (self.cpuActivePkmn, move, self.cpuActivePkmn)
-		return [damageDealt, statusChange, msg]
+		return [damageDealt, statusChange, [msg, inflictedStatMsg, inflictedStatusMsg, currentStatusMsg]]

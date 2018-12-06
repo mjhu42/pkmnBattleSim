@@ -25,7 +25,10 @@ def damageCalculator(atkPkmn, defPkmn, move):
 	defPkmnSpDef = int(defPkmn.getBattleStats()[4])
 
 	# move power
-	movePower = int(move.getMovePower())
+	if move.getMovePower() == "" or move.getMovePower() == "*":
+		movePower = 10
+	else:
+		movePower = int(move.getMovePower())
 
 	# move category: physical/special?
 	moveCat = move.getMoveCategory()
@@ -90,26 +93,56 @@ def statusCalculator(atkPkmn, defPkmn, move):
 	statusConds = move.getMoveStatus()
 	statChanges = move.getMoveDStat()
 
-	print(move, statusConds)
+	statusMsg = ""
+	statMsg = ""
 
 	for status in range(0, len(statusConds)):
 		if statusConds[status] != "":
 			if statusConds[status].isdigit():
 				defPkmn.changeConditions(status)
+				if status == 0:
+					statusMsg = "%s was burned!" % (defPkmn)
+				elif status == 1:
+					statusMsg = "%s was paralyzed!" % (defPkmn)
+				elif status == 2:
+					statusMsg = "%s was poisoned!" % (defPkmn)
+				elif status == 3:
+					statusMsg = "%s fell asleep!" % (defPkmn)
+				elif status == 4:
+					statusMsg = "%s was frozen!" % (defPkmn)
 			else:
 				atkPkmn.changeConditions(status)
+				if status == 0:
+					statusMsg = "%s was burned!" % (atkPkmn)
+				elif status == 1:
+					statusMsg = "%s was paralyzed!" % (atkPkmn)
+				elif status == 2:
+					statusMsg = "%s was poisoned!" % (atkPkmn)
+				elif status == 3:
+					statusMsg = "%s fell asleep!" % (atkPkmn)
+				elif status == 4:
+					statusMsg = "%s was frozen!" % (atkPkmn)
 
+	statList = ["Attack", "Defense", "Sp. Attack", "Sp. Defense", "Speed", "accuracy", "evasiveness"]
 	for stat in range(0, len(statChanges)):
 		if statChanges[stat] != "":
 			lst = statChanges[stat].split(",")
 			if lst[0] == "t":
 				defPkmn.changeStats(stat, int(lst[1]))
+				if int(lst[1]) < 0:
+					statMsg += (("%s's %s fell!") % (defPkmn, statList[stat])) + "\n"
+				elif int(lst[1] > 0):
+					statMsg = ("%s's %s rose!") % (defPkmn, statList[stat]) + "\n"
 			else:
 				atkPkmn.changeStats(stat, int(lst[1]))
+				if int(lst[1]) < 0:
+					statMsg += ("%s's %s fell!") % (atkPkmn, statList[stat]) + "\n"
+				elif int(lst[1]) > 0:
+					statMsg += ("%s's %s rose!") % (atkPkmn, statList[stat]) + "\n"
 
 	atkPkmnStatChanges = atkPkmn.getStatChanges()[1:]
 	defPkmnStatChanges = defPkmn.getStatChanges()[1:]
 	atkPkmnCond = atkPkmn.getConditions()
 	defPkmnCond = defPkmn.getConditions()
 
-	return [atkPkmnStatChanges, defPkmnStatChanges, atkPkmnCond, defPkmnCond]
+	return [atkPkmnStatChanges, defPkmnStatChanges, atkPkmnCond, defPkmnCond, [statusMsg, statMsg]]
