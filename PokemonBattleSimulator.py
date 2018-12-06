@@ -535,6 +535,7 @@ class BattleSimulator(PygameGame):
         self.boxButton6 = pygame.Rect((xSelectBoxCoord, 6 * padding + 92 * 5), boxesDim)
         
         self.backButton = pygame.Rect((10, 10), (45, 45))
+        self.suggestEVButton = pygame.Rect((65, 10), (45, 45))
         self.clearButton = pygame.Rect((120, 10), (45, 45))
         self.saveIcon = pygame.sprite.Group(RotatingButton(saveIcon, (88, 32)))
         
@@ -716,6 +717,10 @@ class BattleSimulator(PygameGame):
         properName = str(activeName).title()
         if properName == "Farfetch'D":
             properName = "Farfetch'd"
+        elif properName == "Nidoran (F)":
+            properName = "Nidoran-F"
+        elif properName == "Nidoran (M)":
+            properName = "Nidoran-M"
         folderPath = "images/pkmn_sprites_front/"
         pkmnLower = str(activeName).lower()
         if pkmnLower == "mr. mime":
@@ -1328,8 +1333,12 @@ class BattleSimulator(PygameGame):
 
                 # INITIALIZE NEED-TO-KNOW INFO
                 pkmnTypes = currentPkmn.getType()
-                print(currentPkmn)
-                currentMoves = BattleSimulator.POKEMON_DICT[currentPkmn.getName()][11]
+                if currentPkmn.getName() == "Nidoran (F)":
+                    currentMoves = BattleSimulator.POKEMON_DICT["Nidoran-F"][11]
+                elif currentPkmn.getName() == "Nidoran (M)":
+                    currentMoves = BattleSimulator.POKEMON_DICT["Nidoran-M"][11]
+                else:
+                    currentMoves = BattleSimulator.POKEMON_DICT[currentPkmn.getName()][11]
                 currentMoves = [x.strip() for x in currentMoves.split(",")]
                 # CLEAN OUT
                 validMoves = []
@@ -1376,7 +1385,7 @@ class BattleSimulator(PygameGame):
                         onPkmn = BattleSimulator.POKEMON_DICT[pkmn]
                         if int(onPkmn[8]) >= baseStatsLimit and pkmn not in potentialPkmn and onPkmn[11] != "":
                             potentialPkmn.append(Pokemon(pkmn, levelCap, [0, 0, 0, 0, 0, 0], [None, None, None, None],
-                                     False, [0, 0, 0, 0, 0, 0, 0], [False, False, False, False, False]))
+                                     False, [0, 0, 0, 0, 0, 0, 0, 0], [False, False, False, False, False]))
             for count in range(0, plyrTeamCount):
                 # every other pkmn here will be super effective against a pkmn on the player's team
                 if count % 2 == 1:
@@ -1404,7 +1413,12 @@ class BattleSimulator(PygameGame):
                     
                 # INITIALIZE NEED-TO-KNOW INFO
                 pkmnTypes = currentPkmn.getType()
-                currentMoves = BattleSimulator.POKEMON_DICT[currentPkmn.getName()][11]
+                if currentPkmn.getName() == "Nidoran (F)":
+                    currentMoves = BattleSimulator.POKEMON_DICT["Nidoran-F"][11]
+                elif currentPkmn.getName() == "Nidoran (M)":
+                    currentMoves = BattleSimulator.POKEMON_DICT["Nidoran-M"][11]
+                else:
+                    currentMoves = BattleSimulator.POKEMON_DICT[currentPkmn.getName()][11]
                 currentMoves = [x.strip() for x in currentMoves.split(",")]
                 # CLEAN OUT
                 validMoves = []
@@ -1467,7 +1481,6 @@ class BattleSimulator(PygameGame):
                         else:
                             randomMove = random.randint(0, len(specialMoves) - 1)
                             currentPkmn.changeMoves(move, specialMoves.pop(randomMove))
-                print(currentPkmn.getMoves())
                 for evIndex in range(0, 6):
                     if currentPkmn.getBaseStats()[1] > currentPkmn.getBaseStats()[3]: # if atk > spatk
                         currentPkmn.changeEVs(1, 252) # give atk 252
@@ -1592,8 +1605,23 @@ class BattleSimulator(PygameGame):
         if self.playMedium:
             if self.cpuUsedMove[0] != "switch":
                 self.cpuMsg = self.cpuUsedMove[2]
-        plyrSpeed = self.playerActivePkmn.getBattleStats()[5] # player speed
-        cpuSpeed = self.cpuActivePkmn.getBattleStats()[5] # cpu speed
+        if self.plyrUsedMove[3].getMovePriority() != "":
+            if self.cpuUsedMove[3].getMovePriority() != "":
+                if int(self.cpuUsedMove[3].getMovePriority()) < int(self.plyrUsedMove[3].getMovePriority()):
+                    cpuSpeed = -2
+                    plyrSpeed = 2
+                elif int(self.cpuUsedMove[3].getMovePriority()) > int(self.plyrUsedMove[3].getMovePriority()):
+                    plyrSpeed = -2
+                    cpuSpeed = 2
+            else:
+                cpuSpeed = -2
+                plyrSpeed = 2
+        elif self.cpuUsedMove[3].getMovePriority() != "":
+            cpuSpeed = 2
+            plyrSpeed = -2
+        else:
+            plyrSpeed = self.playerActivePkmn.getBattleStats()[5] # player speed
+            cpuSpeed = self.cpuActivePkmn.getBattleStats()[5] # cpu speed
 
         isPlayerBurned = self.playerActivePkmn.getConditions()[0]
         isCPUBurned = self.cpuActivePkmn.getConditions()[0]
@@ -1606,7 +1634,13 @@ class BattleSimulator(PygameGame):
             plyrSpeed //= 2
         if self.cpuActivePkmn.getConditions()[1]:
             cpuSpeed //= 2
-        
+
+        if self.cpuUsedMove[3].getMoveName() == "Protect" or self.cpuUsedMove[3].getMoveName() == "Detect":
+            self.plyrUsedMove[0] = 0
+            self.cpuUsedMove[0] = 0
+        if self.plyrUsedMove[3].getMoveName() == "Protect" or self.plyrUsedMove[3].getMoveName() == "Detect":
+            self.plyrUsedMove[0] = 0
+            self.cpuUsedMove[0] = 0
         if self.cpuActivePkmn != None and self.playerActivePkmn != None:
             if self.cpuUsedMove[0] == "switch": # only applicable to regular mode
                 hpLeft = self.cpuActivePkmn.getBattleStats()[0] - self.cpuActivePkmn.getStatChanges()[0]
@@ -1657,6 +1691,7 @@ class BattleSimulator(PygameGame):
                 hpLeft = self.cpuActivePkmn.getBattleStats()[0] - self.cpuActivePkmn.getStatChanges()[0]
                 # if move from plyr WILL NOT KO
                 if self.plyrUsedMove[0] < hpLeft:
+                    print(self.plyrUsedMove[0])
                     self.cpuActivePkmn.changeHP(self.plyrUsedMove[0])
                     hpLeft = self.playerActivePkmn.getBattleStats()[0] - self.playerActivePkmn.getStatChanges()[0]
                     if self.cpuUsedMove[0] < hpLeft:
@@ -1710,7 +1745,7 @@ class BattleSimulator(PygameGame):
                                 self.cpuActiveSprite = self.cpuMed.updateCPUSprite(self.cpuActivePkmn, BattleSimulator.POKEMON_DICT)
         
         # BURN MECHANICS: LOSE 1/16 OF HP AT END OF TURN
-        if isPlayerBurned:
+        if isPlayerBurned and self.activePkmn != None:
             hpLeft = self.playerActivePkmn.getBattleStats()[0] - self.playerActivePkmn.getStatChanges()[0]
             damageDealt = self.playerActivePkmn.getBattleStats()[0] // 16
             if hpLeft < damageDealt:
@@ -1721,8 +1756,9 @@ class BattleSimulator(PygameGame):
                 self.plyrJustFainted = True
             else:
                 self.playerActivePkmn.changeHP(damageDealt)
-                print("%s was hurt by its burn!") % (self.playerActivePkmn)
-        if isCPUBurned:
+                msg = "%s was hurt by its burn!" % (self.playerActivePkmn)
+                print(msg)
+        if isCPUBurned and self.cpuActivePkmn != None:
             hpLeft = self.cpuActivePkmn.getBattleStats()[0] - self.cpuActivePkmn.getStatChanges()[0]
             damageDealt = self.cpuActivePkmn.getBattleStats()[0] // 16
             if hpLeft < damageDealt:
@@ -1739,10 +1775,11 @@ class BattleSimulator(PygameGame):
                         self.cpuActiveSprite = self.cpuMed.updateCPUSprite(self.cpuActivePkmn, BattleSimulator.POKEMON_DICT)
             else:
                 self.cpuActivePkmn.changeHP(damageDealt)
-                print("%s was hurt by its burn!") % (self.cpuActivePkmn)
+                msg = "%s was hurt by its burn!" % (self.cpuActivePkmn)
+                print(msg)
         
         # POISON MECHANICS: LOSE 1/8 OF HP AT END OF TURN
-        if isPlayerPoisoned:
+        if isPlayerPoisoned and self.playerActivePkmn != None:
             hpLeft = self.playerActivePkmn.getBattleStats()[0] - self.playerActivePkmn.getStatChanges()[0]
             damageDealt = self.playerActivePkmn.getBattleStats()[0] // 8
             if hpLeft < damageDealt:
@@ -1755,7 +1792,7 @@ class BattleSimulator(PygameGame):
                 self.playerActivePkmn.changeHP(damageDealt)
                 msg = ("%s was hurt by poison!") % (self.playerActivePkmn)
                 print(msg)
-        if isCPUPoisoned:
+        if isCPUPoisoned and self.cpuActivePkmn != None:
             hpLeft = self.cpuActivePkmn.getBattleStats()[0] - self.cpuActivePkmn.getStatChanges()[0]
             damageDealt = self.cpuActivePkmn.getBattleStats()[0] // 8
             if hpLeft < damageDealt:
@@ -1811,6 +1848,7 @@ class BattleSimulator(PygameGame):
         self.playMedium = False
         # 1
         self.pkmn1 = None
+        self.pkmn1Level = None
         self.pkmn1Type1 = None
         self.pkmn1Type2 = None
         self.party[0] = None
@@ -1834,6 +1872,7 @@ class BattleSimulator(PygameGame):
 
         # 2
         self.pkmn2 = None
+        self.pkmn2Level = None
         self.pkmn2Type1 = None
         self.pkmn2Type2 = None
         self.party[1] = None
@@ -1856,6 +1895,7 @@ class BattleSimulator(PygameGame):
 
         # 3
         self.pkmn3 = None
+        self.pkmn3Level = None
         self.pkmn3Type1 = None
         self.pkmn3Type2 = None
         self.party[2] = None
@@ -1878,6 +1918,7 @@ class BattleSimulator(PygameGame):
 
         # 4
         self.pkmn4 = None
+        self.pkmn4Level = None
         self.pkmn4Type1 = None
         self.pkmn4Type2 = None
         self.party[3] = None
@@ -1900,6 +1941,7 @@ class BattleSimulator(PygameGame):
 
         # 5
         self.pkmn5 = None
+        self.pkmn5Level = None
         self.pkmn5Type1 = None
         self.pkmn5Type2 = None
         self.party[4] = None
@@ -1922,6 +1964,7 @@ class BattleSimulator(PygameGame):
 
         # 6
         self.pkmn6 = None
+        self.pkmn6Level = None
         self.pkmn6Type1 = None
         self.pkmn6Type2 = None
         self.party[5] = None
@@ -1942,12 +1985,211 @@ class BattleSimulator(PygameGame):
         # select screen box
         self.selectBox6 = Box(self.pkmn6, self.pkmn6Type1, self.pkmn6Type2, (610, 544), (280, 92))
 
+    #######################
+    ## SUGGEST EV SPREAD ##
+    #######################
+    def suggestEVSpread(self, pkmn, inputList, battleStats):
+        categoryCountDict = {"Physical": 0, "Special": 0, "Status": 0}
+        for i in pkmn.getMoves():
+            if i == None:
+                continue
+            if i.getMoveCategory() == "Physical":
+                categoryCountDict["Physical"] += 1
+            elif i.getMoveCategory() == "Special":
+                categoryCountDict["Special"] += 1
+            else:
+                categoryCountDict["Status"] += 1
+        currentMax = 0
+        currentMaxList = []
+        for j in categoryCountDict:
+            if categoryCountDict[j] > currentMax:
+                currentMaxList = [j]
+                currentMax = categoryCountDict[j]
+            elif categoryCountDict[j] == currentMax:
+                currentMaxList.append(j)
+        if len(currentMaxList) == 1:
+            if "Physical" in currentMaxList:
+                randomDf = random.randint(9, 17)
+                if pkmn.getBaseStats()[2] > pkmn.getBaseStats()[4]:
+                    dfn = randomDf * 4
+                    spdef = 148 - dfn
+                    pkmn.changeEVs(2, dfn)
+                    pkmn.changeEVs(3, spdef)
+                    inputList[2].changeBuffer(list(str(dfn)))
+                    inputList[4].changeBuffer(list(str(spdef)))
+                elif pkmn.getBaseStats()[2] < pkmn.getBaseStats()[4]:
+                    spdef = randomDf * 4
+                    dfn = 148 - spdef
+                    pkmn.changeEVs(2, dfn)
+                    pkmn.changeEVs(3, spdef)
+                    inputList[2].changeBuffer(list(str(dfn)))
+                    inputList[4].changeBuffer(list(str(spdef)))
+                else:
+                    randDef = random.randint(0, 1)
+                    if randDef == 0:
+                        dfn = randomDf * 4
+                        spdef = 148 - dfn
+                        pkmn.changeEVs(2, dfn)
+                        pkmn.changeEVs(3, spdef)
+                        inputList[2].changeBuffer(list(str(dfn)))
+                        inputList[4].changeBuffer(list(str(spdef)))
+                    else:
+                        spdef = randomDf * 4
+                        dfn = 148 - spdef
+                        pkmn.changeEVs(2, dfn)
+                        pkmn.changeEVs(3, spdef)
+                        inputList[2].changeBuffer(list(str(dfn)))
+                        inputList[4].changeBuffer(list(str(spdef)))
+                pkmn.changeEVs(0, 56)
+                pkmn.changeEVs(1, 252)
+                pkmn.changeEVs(5, 52)
+                inputList[0].changeBuffer(["5", "2"])
+                inputList[1].changeBuffer(['2', '5', '2'])
+                inputList[5].changeBuffer(["5", "2"])
+            elif "Special" in currentMaxList:
+                randomDf = random.randint(9, 17)
+                if pkmn.getBaseStats()[2] > pkmn.getBaseStats()[4]:
+                    dfn = randomDf * 4
+                    spdef = 148 - dfn
+                    pkmn.changeEVs(2, dfn)
+                    pkmn.changeEVs(3, spdef)
+                    inputList[2].changeBuffer(list(str(dfn)))
+                    inputList[4].changeBuffer(list(str(spdef)))
+                elif pkmn.getBaseStats()[2] < pkmn.getBaseStats()[4]:
+                    spdef = randomDf * 4
+                    dfn = 148 - spdef
+                    pkmn.changeEVs(2, dfn)
+                    pkmn.changeEVs(3, spdef)
+                    inputList[2].changeBuffer(list(str(dfn)))
+                    inputList[4].changeBuffer(list(str(spdef)))
+                else:
+                    randDef = random.randint(0, 1)
+                    if randDef == 0:
+                        dfn = randomDf * 4
+                        spdef = 148 - dfn
+                        pkmn.changeEVs(2, dfn)
+                        pkmn.changeEVs(3, spdef)
+                        inputList[2].changeBuffer(list(str(dfn)))
+                        inputList[4].changeBuffer(list(str(spdef)))
+                    else:
+                        spdef = randomDf * 4
+                        dfn = 148 - spdef
+                        pkmn.changeEVs(2, dfn)
+                        pkmn.changeEVs(3, spdef)
+                        inputList[2].changeBuffer(list(str(dfn)))
+                        inputList[4].changeBuffer(list(str(spdef)))
+                pkmn.changeEVs(0, 56)
+                pkmn.changeEVs(3, 252)
+                pkmn.changeEVs(5, 52)
+                inputList[0].changeBuffer(["5", "2"])
+                inputList[3].changeBuffer(['2', '5', '2'])
+                inputList[5].changeBuffer(["5", "2"])
+            elif "Status" in currentMaxList:
+                if pkmn.getBaseStats()[2] > pkmn.getBaseStats()[4]:
+                    pkmn.changeEVs(2, 252)
+                    inputList[2].changeBuffer(['2', '5', '2'])
+                elif pkmn.getBaseStats()[2] < pkmn.getBaseStats()[4]:
+                    pkmn.changeEVs(4, 252)
+                    inputList[4].changeBuffer(['2', '5', '2'])
+                pkmn.changeEVs(0, 252)
+                inputList[0].changeBuffer(['2', '5', '2'])
+                if categoryCountDict["Physical"] > categoryCountDict["Special"]:
+                    pkmn.changeEVs(1, 4)
+                    inputList[1].changeBuffer(["4"])
+                elif categoryCountDict["Physical"] < categoryCountDict["Special"]:
+                    pkmn.changeEVs(3, 4)
+                    inputList[3].changeBuffer(["4"])
+                else:
+                    randAtk = random.randint(0, 1)
+                    if randAtk == 0:
+                        pkmn.changeEVs(1, 4)
+                        inputList[1].changeBuffer(["4"])
+                    else:
+                        pkmn.changeEVs(3, 4)
+                        inputList[3].changeBuffer(["4"])
+        elif len(currentMaxList) == 2:
+            if "Physical" in currentMaxList and "Special" in currentMaxList:
+                randomDf = random.randint(9, 17)
+                if pkmn.getBaseStats()[2] > pkmn.getBaseStats()[4]:
+                    dfn = randomDf * 4
+                    spdef = 148 - dfn
+                    pkmn.changeEVs(2, dfn)
+                    pkmn.changeEVs(3, spdef)
+                    inputList[2].changeBuffer(list(str(dfn)))
+                    inputList[4].changeBuffer(list(str(spdef)))
+                elif pkmn.getBaseStats()[2] < pkmn.getBaseStats()[4]:
+                    spdef = randomDf * 4
+                    dfn = 148 - spdef
+                    pkmn.changeEVs(2, dfn)
+                    pkmn.changeEVs(3, spdef)
+                    inputList[2].changeBuffer(list(str(dfn)))
+                    inputList[4].changeBuffer(list(str(spdef)))
+                else:
+                    randDef = random.randint(0, 1)
+                    if randDef == 0:
+                        dfn = randomDf * 4
+                        spdef = 148 - dfn
+                        pkmn.changeEVs(2, dfn)
+                        pkmn.changeEVs(3, spdef)
+                        inputList[2].changeBuffer(list(str(dfn)))
+                        inputList[4].changeBuffer(list(str(spdef)))
+                    else:
+                        spdef = randomDf * 4
+                        dfn = 148 - spdef
+                        pkmn.changeEVs(2, dfn)
+                        pkmn.changeEVs(3, spdef)
+                        inputList[2].changeBuffer(list(str(dfn)))
+                        inputList[4].changeBuffer(list(str(spdef)))
+                pkmn.changeEVs(0, 56)
+                pkmn.changeEVs(1, 126)
+                pkmn.changeEVs(3, 126)
+                pkmn.changeEVs(5, 52)
+                inputList[0].changeBuffer(["5", "6"])
+                inputList[1].changeBuffer(['1', '2', '6'])
+                inputList[3].changeBuffer(['1', '2', '6'])
+                inputList[5].changeBuffer(["5", "2"])
+            elif "Physical" in currentMaxList and "Status" in currentMaxList:
+                if pkmn.getBaseStats()[2] > pkmn.getBaseStats()[4]:
+                    pkmn.changeEVs(2, 252)
+                    inputList[4].changeBuffer(['2', '5', '2'])
+                elif pkmn.getBaseStats()[2] < pkmn.getBaseStats()[4]:
+                    pkmn.changeEVs(4, 252)
+                    inputList[4].changeBuffer(['2', '5', '2'])
+                pkmn.changeEVs(0, 126)
+                pkmn.changeEVs(1, 126)
+                pkmn.changeBuffer(5, 4)
+                inputList[0].changeBuffer(['1', '2', '6'])
+                inputList[1].changeBuffer(['1', '2', '6'])
+                inputList[5].changeBuffer(["4"])
+            elif "Special" in currentMaxList and "Status" in currentMaxList:
+                if pkmn.getBaseStats()[2] > pkmn.getBaseStats()[4]:
+                    pkmn.changeEVs(2, 252)
+                    inputList[4].changeBuffer(['2', '5', '2'])
+                elif pkmn.getBaseStats()[2] < pkmn.getBaseStats()[4]:
+                    pkmn.changeEVs(4, 252)
+                    inputList[4].changeBuffer(['2', '5', '2'])
+                pkmn.changeEVs(0, 126)
+                pkmn.changeEVs(3, 126)
+                pkmn.changeBuffer(5, 4)
+                inputList[0].changeBuffer(['1', '2', '6'])
+                inputList[3].changeBuffer(['1', '2', '6'])
+                inputList[5].changeBuffer(["4"])
+        elif len(currentMaxList) == 3:
+            pkmn.changeEVs(0, 4)
+            pkmn.changeEVs(1, 252)
+            pkmn.changeEVs(3, 252)
+            inputList[0].changeBuffer(["4"])
+            inputList[1].changeBuffer(['2', '5', '2'])
+            inputList[3].changeBuffer(['2', '5', '2'])
+        battleStats = pkmn.getBattleStats()
+        return battleStats
+
     ###################
     ## MOUSE PRESSED ##
     ###################
     def mousePressed(self, x, y):
         ## TITLE SCREEN
-        if self.titleCard == True:
+        if self.titleCard:
             lowerXBound = pygame.mouse.get_pos()[0] > self.centerX - 125
             upperXBound = pygame.mouse.get_pos()[0] < self.centerX + 125
             lowerYBound = pygame.mouse.get_pos()[1] > 362.5
@@ -1957,8 +2199,9 @@ class BattleSimulator(PygameGame):
                 self.selectScreen = True
         
         ## SELECT SCREEN
-        elif self.selectScreen == True:
+        elif self.selectScreen:
             clickedBack = self.backButton.collidepoint(pygame.mouse.get_pos())
+            suggestEV = self.suggestEVButton.collidepoint(pygame.mouse.get_pos())
             clearPkmn = self.clearButton.collidepoint(pygame.mouse.get_pos())
             invalidPosBattleSel = self.invalidBattleSel.collidepoint(pygame.mouse.get_pos())
             easy = self.selectEasyButton.collidepoint(pygame.mouse.get_pos())
@@ -2015,9 +2258,15 @@ class BattleSimulator(PygameGame):
                     self.selectPokemon6 = False
                 elif clickedBack:
                     self.selectPokemon1 = False
+                elif suggestEV:
+                    if all(x is None for x in self.pkmn1.getMoves()):
+                        print("Please enter at least one move.")
+                    else:
+                        self.pkmn1BattleStats = self.suggestEVSpread(self.pkmn1, self.inputEV1List, self.pkmn1BattleStats)
                 elif clearPkmn:
                     # self
                     self.pkmn1 = None
+                    self.pkmn1Level = 50
                     self.pkmn1Type1 = None
                     self.pkmn1Type2 = None
                     self.party[0] = None
@@ -2046,9 +2295,15 @@ class BattleSimulator(PygameGame):
                     self.selectPokemon6 = False
                 elif clickedBack:
                     self.selectPokemon2 = False
+                elif suggestEV:
+                    if all(x is None for x in self.pkmn2.getMoves()):
+                        print("Please enter at least one move.")
+                    else:
+                        self.pkmn2BattleStats = self.suggestEVSpread(self.pkmn2, self.inputEV2List, self.pkmn2BattleStats)
                 elif clearPkmn:
                     # self
                     self.pkmn2 = None
+                    self.pkmn2Level = 50
                     self.pkmn2Type1 = None
                     self.pkmn2Type2 = None
                     self.party[1] = None
@@ -2056,6 +2311,7 @@ class BattleSimulator(PygameGame):
                     self.pkmn2Move2 = None
                     self.pkmn2Move3 = None
                     self.pkmn2Move4 = None
+                    self.pkmn2Moves = [None, None, None, None]
                     self.pkmn2ev = [0, 0, 0, 0, 0, 0]
 
                     # text input
@@ -2076,9 +2332,15 @@ class BattleSimulator(PygameGame):
                     self.selectPokemon6 = False
                 elif clickedBack:
                     self.selectPokemon3 = False
+                elif suggestEV:
+                    if all(x is None for x in self.pkmn1.getMoves()):
+                        print("Please enter at least one move.")
+                    else:
+                        self.pkmn3BattleStats = self.suggestEVSpread(self.pkmn3, self.inputEV3List, self.pkmn3BattleStats)
                 elif clearPkmn:
                     # self
                     self.pkmn3 = None
+                    self.pkmn3Level = 50
                     self.pkmn3Type1 = None
                     self.pkmn3Type2 = None
                     self.party[2] = None
@@ -2106,9 +2368,15 @@ class BattleSimulator(PygameGame):
                     self.selectPokemon6 = False
                 elif clickedBack:
                     self.selectPokemon4 = False
+                elif suggestEV:
+                    if all(x is None for x in self.pkmn1.getMoves()):
+                        print("Please enter at least one move.")
+                    else:
+                        self.pkmn4BattleStats = self.suggestEVSpread(self.pkmn4, self.inputEV4List, self.pkmn4BattleStats)
                 elif clearPkmn:
                     # self
                     self.pkmn4 = None
+                    self.pkmn4Level = 50
                     self.pkmn4Type1 = None
                     self.pkmn4Type2 = None
                     self.party[3] = None
@@ -2136,9 +2404,15 @@ class BattleSimulator(PygameGame):
                     self.selectPokemon6 = False
                 elif clickedBack:
                     self.selectPokemon5 = False
+                elif suggestEV:
+                    if all(x is None for x in self.pkmn1.getMoves()):
+                        print("Please enter at least one move.")
+                    else:
+                        self.pkmn5BattleStats = self.suggestEVSpread(self.pkmn5, self.inputEV5List, self.pkmn5BattleStats)
                 elif clearPkmn:
                     # self
                     self.pkmn5 = None
+                    self.pkmn5Level = 50
                     self.pkmn5Type1 = None
                     self.pkmn5Type2 = None
                     self.party[4] = None
@@ -2166,9 +2440,15 @@ class BattleSimulator(PygameGame):
                     self.selectPokemon5 = False
                 elif clickedBack:
                     self.selectPokemon6 = False
+                elif suggestEV:
+                    if all(x is None for x in self.pkmn1.getMoves()):
+                        print("Please enter at least one move.")
+                    else:
+                        self.pkmn6BattleStats = self.suggestEVSpread(self.pkmn6, self.inputEV6List, self.pkmn6BattleStats)
                 elif clearPkmn:
                     # self
                     self.pkmn6 = None
+                    self.pkmn6Level = 50
                     self.pkmn6Type1 = None
                     self.pkmn6Type2 = None
                     self.party[5] = None
@@ -2188,7 +2468,7 @@ class BattleSimulator(PygameGame):
                     self.selectBox6 = Box(self.pkmn6, self.pkmn6Type1, self.pkmn6Type2, (610, 544), (280, 92))
         
         ## BATTLE SCREEN
-        elif self.battleScreen == True:
+        elif self.battleScreen:
             chooseBattle = self.chooseBattle.collidepoint(pygame.mouse.get_pos())
             chooseRun = self.chooseRun.collidepoint(pygame.mouse.get_pos())
             chooseViewParty = self.chooseViewParty.collidepoint(pygame.mouse.get_pos())
@@ -2398,7 +2678,7 @@ class BattleSimulator(PygameGame):
                 elif self.noRun.collidepoint(pygame.mouse.get_pos()):
                     self.mightRun = False
 
-        elif self.gameOver == True:
+        elif self.gameOver:
             replay = self.replayButton.collidepoint(pygame.mouse.get_pos())
             quit = self.quitButton.collidepoint(pygame.mouse.get_pos())
             if replay:
@@ -2439,7 +2719,7 @@ class BattleSimulator(PygameGame):
     ################
     def redrawAll(self, screen):
         # TITLE SCREEN
-        if self.titleCard == True:
+        if self.titleCard:
             screen.blit(self.titleBG, (0, 0))
             screen.blit(self.logo, (self.centerX - self.logoRect.width / 2, 15))
             screen.blit(self.BSTextSurfaceShadow2,
@@ -2453,7 +2733,7 @@ class BattleSimulator(PygameGame):
             self.initButton.draw(screen)
         
         # SELECT SCREEN
-        elif self.selectScreen == True:            
+        elif self.selectScreen:            
             screen.blit(self.selectBG, (0, 0))
             screen.blit(self.playButton1, self.playButton1Rect)
 
@@ -3278,7 +3558,7 @@ class BattleSimulator(PygameGame):
                         screen.blit(mvAcc, (291, 587))
             
         # BATTLE SCREEN
-        elif self.battleScreen == True:
+        elif self.battleScreen:
             screen.blit(self.battleBG, (0, 0))
 
             # SPRITES
@@ -3339,7 +3619,6 @@ class BattleSimulator(PygameGame):
             #     txtY = 459
             # elif self.playMedium:
             txtY = 462
-            print(self.cpuMsg)
             if type(self.cpuMsg) == list:
                 for msg in self.cpuMsg: # 0 = used move, 1 = inflicted stat, 2 = inflicted status, 3 = current status
                     if msg != "":
@@ -3415,32 +3694,32 @@ class BattleSimulator(PygameGame):
             elif not self.cpuParty[1].getIsFainted():
                 screen.blit(self.nonFaintedPartyIMG, (243, 32))
             # pkmn3
-            if self.pkmn3 == None:
+            if self.cpuParty[2] == None:
                 screen.blit(self.emptyPartySlotIMG, (267, 32))
-            elif self.pkmn3.getIsFainted(): # if pkmn3 has fainted
+            elif self.cpuParty[2].getIsFainted(): # if pkmn3 has fainted
                 screen.blit(self.faintedPartyIMG, (267, 32))
-            elif not self.pkmn3.getIsFainted():
+            elif not self.cpuParty[2].getIsFainted():
                 screen.blit(self.nonFaintedPartyIMG, (267, 32))
             # pkmn4
-            if self.pkmn4 == None:
+            if self.cpuParty[3] == None:
                 screen.blit(self.emptyPartySlotIMG, (291, 32))
-            elif self.pkmn4.getIsFainted(): # if pkmn4 has fainted
+            elif self.cpuParty[3].getIsFainted(): # if pkmn4 has fainted
                 screen.blit(self.faintedPartyIMG, (291, 32))
-            elif not self.pkmn4.getIsFainted():
+            elif not self.cpuParty[3].getIsFainted():
                 screen.blit(self.nonFaintedPartyIMG, (291, 32))
             # pkmn5
-            if self.pkmn5 == None:
+            if self.cpuParty[4] == None:
                 screen.blit(self.emptyPartySlotIMG, (315, 32))
-            elif self.pkmn5.getIsFainted(): # if pkmn5 has fainted
+            elif self.cpuParty[4].getIsFainted(): # if pkmn5 has fainted
                 screen.blit(self.faintedPartyIMG, (315, 32))
-            elif not self.pkmn5.getIsFainted():
+            elif not self.cpuParty[4].getIsFainted():
                 screen.blit(self.nonFaintedPartyIMG, (315, 32))
             # pkmn6
-            if self.pkmn6 == None:
+            if self.cpuParty[5] == None:
                 screen.blit(self.emptyPartySlotIMG, (339, 32))
-            elif self.pkmn6.getIsFainted(): # if pkmn6 has fainted
+            elif self.cpuParty[5].getIsFainted(): # if pkmn6 has fainted
                 screen.blit(self.faintedPartyIMG, (339, 32))
-            elif not self.pkmn6.getIsFainted():
+            elif not self.cpuParty[5].getIsFainted():
                 screen.blit(self.nonFaintedPartyIMG, (339, 32))
 
             # HP BARS
@@ -3644,7 +3923,7 @@ class BattleSimulator(PygameGame):
                 for ev in self.inputEV6List:
                     ev.update()
 
-            if self.battleScreen == True:
+            if self.battleScreen:
                 if self.playerActiveSprite != None:
                     self.playerActiveSprite.update()
                 if self.cpuActiveSprite != None:

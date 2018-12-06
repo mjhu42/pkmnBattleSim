@@ -74,7 +74,6 @@ class Player:
 		statChanges = []
 		for d in changes:
 			if d != "":
-				print(d)
 				stripped = [x.strip() for x in d.split(",")]
 				statChanges.append(stripped)
 			else:
@@ -197,6 +196,7 @@ class Player:
 				return [[1, 1, 1, 1, 1, 1, 1]]
 
 	def useMove(self, move):
+		msg = ""
 		currentStatusMsg = ""
 		inflictedStatusMsg = ""
 		inflictedStatMsg = ""
@@ -279,7 +279,7 @@ class Player:
 				inflictedStatusMsg = statusMove[4][0]
 		elif not isPara and not isFrozen and not isSleep:
 			msg = "%s used %s! %s's attack missed!" % (self.activePkmn, move, self.activePkmn)
-		return [damageDealt, statusChange, [msg, inflictedStatMsg, inflictedStatusMsg, currentStatusMsg]]
+		return [damageDealt, statusChange, [msg, inflictedStatMsg, inflictedStatusMsg, currentStatusMsg], move]
 	
 class EasyOpponent(Player):
 	def __init__(self, activePkmn, party, cpuActivePkmn, cpuParty, pkmnDict, moveDict):
@@ -435,7 +435,7 @@ class EasyOpponent(Player):
 				statChange = int(statChanges[sc][1])
 				if len(statChanges[sc]) == 2:
 					statusChanges[1][sc] = statChange
-					checkStatsCPU = self.cpuActivePkmn()[sc + 1] + statChange
+					checkStatsCPU = self.cpuActivePkmn.getStatChanges()[sc + 1] + statChange
 					if self.cpuActivePkmn.getStatChanges()[sc + 1] == 6:
 						inflictedStatMsg += (("%s's %s can't go any higher!") % (self.cpuActivePkmn, statsList[sc])) + "\n"
 						statChanges[1][sc] = 0
@@ -538,6 +538,7 @@ class EasyOpponent(Player):
 		return [statusChanges, inflictedStatMsg]
 
 	def useMove(self):
+		msg = ""
 		currentStatusMsg = ""
 		inflictedStatusMsg = ""
 		inflictedStatMsg = ""
@@ -622,13 +623,12 @@ class EasyOpponent(Player):
 				switch1 = [statusMove[1], statusMove[0]]
 				switch2 = [statusMove[3], statusMove[2]]
 				statusMove = switch1 + switch2 + [statusMove[4]]
-				print(statusMove)
 				statusChange = statusMove[0:4]
 				inflictedStatMsg = statusMove[4][1]
 				inflictedStatusMsg = statusMove[4][0]
 		elif not isPara and not isFrozen and not isSleep:
 			msg = "%s used %s! %s's attack missed!" % (self.cpuActivePkmn, move, self.cpuActivePkmn)
-		return [damageDealt, statusChange, [msg, inflictedStatMsg, inflictedStatusMsg, currentStatusMsg]]
+		return [damageDealt, statusChange, [msg, inflictedStatMsg, inflictedStatusMsg, currentStatusMsg], move]
 
 class MediumOpponent(EasyOpponent):
 	def __init__(self, activePkmn, party, cpuActivePkmn, cpuParty, pkmnDict, moveDict):
@@ -779,7 +779,6 @@ class MediumOpponent(EasyOpponent):
 							return None
 
 	def decideMove(self):
-		print("CPU deciding move...")
 		rlMoves = self.cpuActivePkmn.getMoves()
 		cpuPkmnTypes = self.cpuActivePkmn.getType()
 		oppPkmnTypes = self.activePkmn.getType()
@@ -877,6 +876,7 @@ class MediumOpponent(EasyOpponent):
 		return move
 
 	def useMove(self):
+		msg = ""
 		currentStatusMsg = ""
 		inflictedStatusMsg = ""
 		inflictedStatMsg = ""
@@ -963,10 +963,9 @@ class MediumOpponent(EasyOpponent):
 				switch1 = [statusMove[1], statusMove[0]]
 				switch2 = [statusMove[3], statusMove[2]]
 				statusMove = switch1 + switch2 + [statusMove[4]]
-				print(statusMove)
 				statusChange = statusMove[0:4]
 				inflictedStatMsg = statusMove[4][1]
 				inflictedStatusMsg = statusMove[4][0]
 		elif not isPara and not isFrozen and not isSleep:
 			msg = "%s used %s! %s's attack missed!" % (self.cpuActivePkmn, move, self.cpuActivePkmn)
-		return [damageDealt, statusChange, [msg, inflictedStatMsg, inflictedStatusMsg, currentStatusMsg]]
+		return [damageDealt, statusChange, [msg, inflictedStatMsg, inflictedStatusMsg, currentStatusMsg], move]

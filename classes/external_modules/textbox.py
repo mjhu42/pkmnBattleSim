@@ -42,6 +42,9 @@ class TextBox:
     def getBuffer(self):
         return self.buffer
 
+    def changeBuffer(self, bufferTxt):
+        self.buffer = bufferTxt
+
     def clearBox(self):
         self.buffer = []
 

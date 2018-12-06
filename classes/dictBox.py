@@ -21,7 +21,11 @@ class DictBox:
 		for name in self.content:
 			nameList = list(name.lower())
 			count = 0
-			for letter in self.compareText:
+			cmprTxt = []
+			for i in self.compareText:
+				if i != "":
+					cmprTxt.append(i)
+			for letter in cmprTxt:
 				letter = letter.lower()
 				if count > len(nameList) - 1:
 					break
@@ -29,7 +33,7 @@ class DictBox:
 					count += 1
 				else:
 					break
-				if count == len(self.compareText):
+				if count == len(cmprTxt):
 					screen.blit(self.font.render(name, True, (0, 0, 0)),
 									(self.topLeft[0] + 10, yTxt + 10))
 					yTxt += 15
@@ -46,7 +50,11 @@ class MoveDictBox(DictBox):
 		for name in self.content:
 			nameList = list(name.lower())
 			count = 0
-			for letter in self.compareText:
+			cmprTxt = []
+			for i in self.compareText:
+				if i != "":
+					cmprTxt.append(i)
+			for letter in cmprTxt:
 				letter = letter.lower()
 				if count > len(nameList) - 1:
 					break
@@ -54,7 +62,7 @@ class MoveDictBox(DictBox):
 					count += 1
 				else:
 					break
-				if count == len(self.compareText):
+				if count == len(cmprTxt):
 					if name not in self.moves:
 						screen.blit(self.font.render(name, True, (0, 0, 0)),
 									(self.topLeft[0] + 10, yTxt + 10))

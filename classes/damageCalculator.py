@@ -25,7 +25,9 @@ def damageCalculator(atkPkmn, defPkmn, move):
 	defPkmnSpDef = int(defPkmn.getBattleStats()[4])
 
 	# move power
-	if move.getMovePower() == "" or move.getMovePower() == "*":
+	if move.getMoveName() == "Protect" or move.getMoveName() == "Detect":
+		movePower = 0
+	elif move.getMovePower() == "" or move.getMovePower() == "*":
 		movePower = 10
 	else:
 		movePower = int(move.getMovePower())
