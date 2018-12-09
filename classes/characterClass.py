@@ -237,7 +237,7 @@ class Player:
 			if self.sleepCount == 0:
 				hit = False
 				self.sleepCount += 1
-				currentStatusMsg = print("%s is asleep.") % (self.activePkmn)
+				currentStatusMsg = "%s is asleep." % (self.activePkmn)
 				print(currentStatusMsg)
 			elif self.sleepCount == 3:
 				hit = True
@@ -674,7 +674,7 @@ class MediumOpponent(EasyOpponent):
 				return [self.cpuActivePkmn, msg]
 		elif len(otherPotentialPkmn) != 0:
 			if len(otherPotentialPkmn) > 1:
-				randPkmn = random.randint(0, len(bestPotentialPkmn) - 1)
+				randPkmn = random.randint(0, len(otherPotentialPkmn) - 1)
 				msg = ("%s switched out for %s!") % (self.cpuActivePkmn, otherPontentialPkmn[randPkmn])
 				self.cpuActivePkmn = otherPotentialPkmn[randPkmn]
 				return [self.cpuActivePkmn, msg]
@@ -684,7 +684,7 @@ class MediumOpponent(EasyOpponent):
 				return [self.cpuActivePkmn, msg]
 		elif len(lastResortPkmn) != 0:
 			if len(lastResortPkmn) > 1:
-				randPkmn = random.randint(0, len(bestPotentialPkmn) - 1)
+				randPkmn = random.randint(0, len(lastResortPotentialPkmn) - 1)
 				msg = ("%s switched out for %s!") % (self.cpuActivePkmn, lastResortPkmn[randPkmn])
 				self.cpuActivePkmn = lastResortPkmn[randPkmn]
 				return [self.cpuActivePkmn, msg]

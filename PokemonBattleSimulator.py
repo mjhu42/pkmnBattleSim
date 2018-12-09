@@ -1605,23 +1605,24 @@ class BattleSimulator(PygameGame):
         if self.playMedium:
             if self.cpuUsedMove[0] != "switch":
                 self.cpuMsg = self.cpuUsedMove[2]
-        if self.plyrUsedMove[3].getMovePriority() != "":
-            if self.cpuUsedMove[3].getMovePriority() != "":
-                if int(self.cpuUsedMove[3].getMovePriority()) < int(self.plyrUsedMove[3].getMovePriority()):
+        if self.cpuUsedMove[0] != "switch":
+            if self.plyrUsedMove[3].getMovePriority() != "":
+                if self.cpuUsedMove[3].getMovePriority() != "":
+                    if int(self.cpuUsedMove[3].getMovePriority()) < int(self.plyrUsedMove[3].getMovePriority()):
+                        cpuSpeed = -2
+                        plyrSpeed = 2
+                    elif int(self.cpuUsedMove[3].getMovePriority()) > int(self.plyrUsedMove[3].getMovePriority()):
+                        plyrSpeed = -2
+                        cpuSpeed = 2
+                else:
                     cpuSpeed = -2
                     plyrSpeed = 2
-                elif int(self.cpuUsedMove[3].getMovePriority()) > int(self.plyrUsedMove[3].getMovePriority()):
-                    plyrSpeed = -2
-                    cpuSpeed = 2
+            elif self.cpuUsedMove[3].getMovePriority() != "":
+                cpuSpeed = 2
+                plyrSpeed = -2
             else:
-                cpuSpeed = -2
-                plyrSpeed = 2
-        elif self.cpuUsedMove[3].getMovePriority() != "":
-            cpuSpeed = 2
-            plyrSpeed = -2
-        else:
-            plyrSpeed = self.playerActivePkmn.getBattleStats()[5] # player speed
-            cpuSpeed = self.cpuActivePkmn.getBattleStats()[5] # cpu speed
+                plyrSpeed = self.playerActivePkmn.getBattleStats()[5] # player speed
+                cpuSpeed = self.cpuActivePkmn.getBattleStats()[5] # cpu speed
 
         isPlayerBurned = self.playerActivePkmn.getConditions()[0]
         isCPUBurned = self.cpuActivePkmn.getConditions()[0]
@@ -1634,10 +1635,10 @@ class BattleSimulator(PygameGame):
             plyrSpeed //= 2
         if self.cpuActivePkmn.getConditions()[1]:
             cpuSpeed //= 2
-
-        if self.cpuUsedMove[3].getMoveName() == "Protect" or self.cpuUsedMove[3].getMoveName() == "Detect":
-            self.plyrUsedMove[0] = 0
-            self.cpuUsedMove[0] = 0
+        if self.cpuUsedMove[0] != "switch":
+            if self.cpuUsedMove[3].getMoveName() == "Protect" or self.cpuUsedMove[3].getMoveName() == "Detect":
+                self.plyrUsedMove[0] = 0
+                self.cpuUsedMove[0] = 0
         if self.plyrUsedMove[3].getMoveName() == "Protect" or self.plyrUsedMove[3].getMoveName() == "Detect":
             self.plyrUsedMove[0] = 0
             self.cpuUsedMove[0] = 0
@@ -1827,9 +1828,12 @@ class BattleSimulator(PygameGame):
     def switchTurn(self):
         if self.playEasy: # initialize cpu move
             self.cpuUsedMove = self.cpuEasy.useMove()
+            self.cpuMsg = self.cpuUsedMove[2]
         elif self.playMedium:
             self.cpuUsedMove = self.cpuMed.useMove()
+            self.cpuMsg = self.cpuUsedMove[2]
         hpLeft = self.playerActivePkmn.getBattleStats()[0] - self.playerActivePkmn.getStatChanges()[0]
+        print(self.cpuUsedMove)
         if self.cpuUsedMove[0] != "switch":
             if self.cpuUsedMove[0] < hpLeft:
                 self.playerActivePkmn.getStatChanges()[0] += self.cpuUsedMove[0]
@@ -1848,7 +1852,7 @@ class BattleSimulator(PygameGame):
         self.playMedium = False
         # 1
         self.pkmn1 = None
-        self.pkmn1Level = None
+        self.pkmn1Level = 50
         self.pkmn1Type1 = None
         self.pkmn1Type2 = None
         self.party[0] = None
@@ -1872,7 +1876,7 @@ class BattleSimulator(PygameGame):
 
         # 2
         self.pkmn2 = None
-        self.pkmn2Level = None
+        self.pkmn2Level = 50
         self.pkmn2Type1 = None
         self.pkmn2Type2 = None
         self.party[1] = None
@@ -1895,7 +1899,7 @@ class BattleSimulator(PygameGame):
 
         # 3
         self.pkmn3 = None
-        self.pkmn3Level = None
+        self.pkmn3Level = 50
         self.pkmn3Type1 = None
         self.pkmn3Type2 = None
         self.party[2] = None
@@ -1918,7 +1922,7 @@ class BattleSimulator(PygameGame):
 
         # 4
         self.pkmn4 = None
-        self.pkmn4Level = None
+        self.pkmn4Level = 50
         self.pkmn4Type1 = None
         self.pkmn4Type2 = None
         self.party[3] = None
@@ -1941,7 +1945,7 @@ class BattleSimulator(PygameGame):
 
         # 5
         self.pkmn5 = None
-        self.pkmn5Level = None
+        self.pkmn5Level = 50
         self.pkmn5Type1 = None
         self.pkmn5Type2 = None
         self.party[4] = None
@@ -1964,7 +1968,7 @@ class BattleSimulator(PygameGame):
 
         # 6
         self.pkmn6 = None
-        self.pkmn6Level = None
+        self.pkmn6Level = 50
         self.pkmn6Type1 = None
         self.pkmn6Type2 = None
         self.party[5] = None
@@ -2157,7 +2161,7 @@ class BattleSimulator(PygameGame):
                     inputList[4].changeBuffer(['2', '5', '2'])
                 pkmn.changeEVs(0, 126)
                 pkmn.changeEVs(1, 126)
-                pkmn.changeBuffer(5, 4)
+                pkmn.changeEVs(5, 4)
                 inputList[0].changeBuffer(['1', '2', '6'])
                 inputList[1].changeBuffer(['1', '2', '6'])
                 inputList[5].changeBuffer(["4"])
@@ -2170,7 +2174,7 @@ class BattleSimulator(PygameGame):
                     inputList[4].changeBuffer(['2', '5', '2'])
                 pkmn.changeEVs(0, 126)
                 pkmn.changeEVs(3, 126)
-                pkmn.changeBuffer(5, 4)
+                pkmn.changeEVs(5, 4)
                 inputList[0].changeBuffer(['1', '2', '6'])
                 inputList[3].changeBuffer(['1', '2', '6'])
                 inputList[5].changeBuffer(["4"])
@@ -3619,6 +3623,7 @@ class BattleSimulator(PygameGame):
             #     txtY = 459
             # elif self.playMedium:
             txtY = 462
+            print(self.cpuMsg)
             if type(self.cpuMsg) == list:
                 for msg in self.cpuMsg: # 0 = used move, 1 = inflicted stat, 2 = inflicted status, 3 = current status
                     if msg != "":

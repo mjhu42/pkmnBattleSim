@@ -230,7 +230,7 @@ Ice Ball,Ice,Physical,30,90,32,,,,,,,,,,,,,,,,,,,
 Needle Arm,Grass,Physical,60,100,24,,,,,,,,,,,,,,,,,30,,
 Slack Off,Normal,Status,,,16,,,,,,,,,,,,,,,,,,,50
 Hyper Voice,Normal,Special,90,100,16,,,,,,,,,,,,,,,,,,,
-Poison Fang,Poison,Physical,50,100,24,,,,"t, 50",,,,,,,,,,,,,,,
+Poison Fang,Poison,Physical,50,100,24,,,,50,,,,,,,,,,,,,,,
 Crush Claw,Normal,Physical,75,95,16,,,,,,,,"t, 50",,,,,,,,,,,
 Blast Burn,Fire,Special,150,90,8,,,,,,,,,,,,,,,,,,1,
 Hydro Cannon,Water,Special,150,90,8,,,,,,,,,,,,,,,,,,1,
